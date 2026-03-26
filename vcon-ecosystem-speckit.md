@@ -29,7 +29,7 @@ The vCon ecosystem implements the IETF vCon (Virtual Conversation) standard acro
 
 | Document | Status | Scope |
 |---|---|---|
-| **draft-ietf-vcon-vcon-core-02** | Working Group Draft | Core vCon specification (Jan 2026) |
+| **draft-ietf-vcon-vcon-core** | Working Group Draft | Core vCon specification ([authoritative repo](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core)) |
 | **draft-howe-vcon-lawful-basis** | Individual Draft | GDPR lawful basis extension |
 | **draft-howe-vcon-lifecycle** | Individual Draft | Lifecycle management via SCITT |
 | **privacy-primer-vcon** | Individual Draft | Privacy guidance for developers |
@@ -38,7 +38,7 @@ The vCon ecosystem implements the IETF vCon (Virtual Conversation) standard acro
 
 ## 2. vCon Data Model (Canonical Reference)
 
-All repositories MUST conform to this data model. When in doubt, defer to the IETF spec (`draft-ietf-vcon-vcon-core-02`).
+All repositories MUST conform to this data model. When in doubt, defer to the IETF spec (`draft-ietf-vcon-vcon-core`).
 
 ### Core Structure
 
@@ -53,7 +53,6 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
   "critical": ["string (incompatible extension names)"],
   "redacted": { "uuid": "string", "type": "string", "url": "string", "content_hash": "string (sha512-base64url)" },
   "amended": { "uuid": "string", "url": "string", "content_hash": "string" },
-  "group": [],
   "parties": [],
   "dialog": [],
   "analysis": [],
@@ -65,7 +64,7 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
 - `vcon` is DEPRECATED as of RFC publication; extension mechanism replaces schema versioning. For syntax in this document, use `"0.4.0"`.
 - `extensions`: List of extension names used. SHOULD list all extensions for parameters not in core schema.
 - `critical`: List of incompatible extension names. Implementations that do not support listed extensions MUST NOT process the vCon.
-- `redacted` and `amended` are mutually exclusive with each other and with `group`. `redacted` references a prior (less redacted) vCon; `amended` references a prior vCon that this version extends.
+- `redacted` and `amended` are mutually exclusive with each other (and with `group`, which is reserved for future extension — do not use). `redacted` references a prior (less redacted) vCon; `amended` references a prior vCon that this version extends.
 
 **vCon forms**: Unsigned (top-level object), signed (JWS General JSON Serialization with payload, signatures), encrypted (JWE with signed vCon as plaintext). Externally referenced files MUST use HTTPS and include `content_hash`. Inline files MUST have `body` and `encoding` (`base64url`, `json`, or `none`).
 
@@ -74,21 +73,24 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
 ```json
 {
   "tel": "string (E.164, tel: prefix optional)",
+  "sip": "string (SIP URI)",
+  "stir": "string (PASSporT JWS Compact)",
   "mailto": "string (mailto: prefix optional)",
   "name": "string (display name; 'anonymous' for unknown)",
-  "sip": "string (SIP URI)",
   "did": "string (Decentralized Identifier)",
-  "uuid": "string (cross-vCon tracking)",
-  "stir": "string (PASSporT JWS Compact)",
   "validation": "string (SHOULD provide if name provided)",
-  "jcard": "array (RFC 7095 vCard, extension)",
   "gmlpos": "string (PIDF-LO gml:pos format)",
   "civicaddress": "object (GEOPRIV: country, a1, a2, etc.)",
-  "timezone": "string (extension)",
-  "role": "string (extension)",
-  "meta": "object (extension)"
+  "uuid": "string (cross-vCon tracking)",
+
+  "jcard": "array (RFC 7095 vCard) — EXTENSION ONLY",
+  "timezone": "string — EXTENSION ONLY",
+  "role": "string — EXTENSION ONLY",
+  "meta": "object — EXTENSION ONLY"
 }
 ```
+
+**Core party fields** (first 10 above) are defined in the authoritative spec. The last four (`jcard`, `timezone`, `role`, `meta`) are extension fields — they MUST be listed in the top-level `extensions` array when used.
 
 **UUID (draft-02)**: SHOULD use version 8 UUID (timestamp-based with FQHN hash for uniqueness).
 
@@ -462,9 +464,9 @@ CREATE TABLE vcons (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   extensions JSONB,
-  must_support JSONB,  -- draft-02: critical (incompatible extensions)
+  must_support JSONB,  -- ⚠️ BUG: spec field is `critical`, not `must_support`
   redacted JSONB,
-  appended JSONB,
+  appended JSONB,      -- ⚠️ BUG: spec field is `amended`, not `appended`
   tenant_id TEXT
 );
 
@@ -474,9 +476,9 @@ CREATE TABLE parties (
   party_index INTEGER NOT NULL,
   tel TEXT, sip TEXT, stir TEXT, mailto TEXT,
   name TEXT, did TEXT, uuid TEXT,
-  validation TEXT, jcard JSONB,
-  gmlpos TEXT, civicaddress JSONB,
-  timezone TEXT
+  validation TEXT, gmlpos TEXT, civicaddress JSONB,
+  jcard JSONB,    -- extension field (not in core spec)
+  timezone TEXT   -- extension field (not in core spec)
 );
 
 CREATE TABLE dialog (
@@ -518,6 +520,8 @@ CREATE TABLE attachments (
   content_hash TEXT, created_at TIMESTAMPTZ
 );
 ```
+
+> **vcon-mcp spec compliance gaps** (as of this writing): The vcon-mcp database and TypeScript types use `appended` (should be `amended`) and `must_support` (should be `critical`) — field names inherited from the older container draft. When writing new code that interacts with vcon-mcp, use the DB column names above; when writing spec-compliant vCon JSON, use `amended` and `critical`.
 
 ### vcon-server (PostgreSQL via Peewee)
 
@@ -885,7 +889,7 @@ if (!result.success) {
 
 When generating code for this ecosystem:
 
-1. **Always check the spec** — Use the data model in Section 2 as the canonical reference (draft-ietf-vcon-vcon-core-02). Never use `schema_version` (it's `schema`). Always include `vendor` in analysis objects. Use `purpose` for attachment purpose (not `type` in core).
+1. **Always check the spec** — Use the data model in Section 2 as the canonical reference (draft-ietf-vcon-vcon-core). Never use `schema_version` (it's `schema`). Always include `vendor` in analysis objects. Use `purpose` for attachment purpose (not `type` in core).
 
 2. **Follow existing patterns** — Match the architecture of the target repository. Links return `vcon_uuid | None`. MCP tools use Zod validation. Python uses `init_logger(__name__)`.
 

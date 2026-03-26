@@ -95,3 +95,16 @@ OTEL_ENABLED, LOG_LEVEL
 
 - UUID: v8 preferred, accept with/without dashes
 - Timestamp: `2025-01-15T10:30:00Z` or `+00:00` offset
+
+## Usage Patterns (see [VCON_USAGE_GUIDE.md](VCON_USAGE_GUIDE.md))
+
+| Question | Answer |
+|----------|--------|
+| Dialog type for audio/video | `"recording"` |
+| Dialog type for chat/email/SMS | `"text"` |
+| Dialog type to link call transfer | `"transfer"` (no body/parties) |
+| Analysis vs. attachment | AI output → analysis; metadata/docs → attachments |
+| Analysis order | transcript → summary → sentiment |
+| Party UUID | Cross-vCon tracking (CRM ID, patient ID) |
+| Tags | Attachment with `purpose: "tags"`, `party: 0`, `dialog: 0` |
+| Lawful basis | Required for healthcare, legal interception; add to `critical` |
