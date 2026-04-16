@@ -6,11 +6,15 @@ A curated set of documents that help teams write code together across the vCon e
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
+| [CLAUDE.md](CLAUDE.md) | AI-assistant task-to-doc routing + non-negotiables | First doc an AI agent loads |
 | [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md) | Architecture, data model, conventions, API patterns | Primary context for AI tools and code generation |
 | [VCON_USAGE_GUIDE.md](VCON_USAGE_GUIDE.md) | Domain profiles, feature guidelines, adapter output schemas | Designing vCon structure for specific use cases |
 | [CODE_STYLE_GUIDE.md](CODE_STYLE_GUIDE.md) | Formatting, naming, lint rules, language-specific standards | Before writing code, during code review |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Branch strategy, PR process, review checklist | When contributing changes |
 | [DEVELOPER_QUICK_REFERENCE.md](DEVELOPER_QUICK_REFERENCE.md) | One-page cheat sheet for common patterns | Quick lookup while coding |
+| [GLOSSARY.md](GLOSSARY.md) | vCon ecosystem term definitions with pointers | Looking up a term |
+| [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) | Known field-name bugs in sibling repos | Before copying field names from another repo |
+| [CHANGELOG.md](CHANGELOG.md) | Spec-alignment and doc-structure change history | Auditing what changed when |
 
 ## Related Documentation
 

@@ -1,5 +1,7 @@
 # vCon Usage Guide
 
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-04-16.
+
 > Companion to [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md). Where the speckit defines **what** the vCon data model is, this guide defines **how to use it** — for specific domains, feature-by-feature, and per adapter/link.
 
 ---

@@ -11,7 +11,7 @@ One-page cheat sheet for common patterns. For full details, see [vcon-ecosystem-
 | Analysis body | String (even for JSON) | Object |
 | Attachment purpose | `purpose` | `type` (in core) |
 | Attachment indices | `party`, `dialog` required | Omitted |
-| Tags | `purpose: "tags"`, JSON body | Top-level tags object |
+| Tags | see [speckit §Tags Convention](vcon-ecosystem-speckit.md#tags-convention) / [GLOSSARY: tags](GLOSSARY.md#core-data-model) | Top-level tags object |
 | External refs | `url` + `content_hash` | Either missing |
 | Timestamps | ISO 8601 + timezone | No timezone |
 
@@ -106,5 +106,5 @@ OTEL_ENABLED, LOG_LEVEL
 | Analysis vs. attachment | AI output → analysis; metadata/docs → attachments |
 | Analysis order | transcript → summary → sentiment |
 | Party UUID | Cross-vCon tracking (CRM ID, patient ID) |
-| Tags | Attachment with `purpose: "tags"`, `party: 0`, `dialog: 0` |
+| Tags | see [speckit §Tags Convention](vcon-ecosystem-speckit.md#tags-convention) |
 | Lawful basis | Required for healthcare, legal interception; add to `critical` |
