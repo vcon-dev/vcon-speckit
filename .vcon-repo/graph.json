@@ -1,95 +1,27 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.0.0",
   "repo": "vcon-speckit",
   "repo_version": null,
-  "archetype": "spec-kit",
-  "generated_at": "2026-04-16T20:00:00+00:00",
-  "generator": "hand-maintained",
+  "archetype": "minimal",
+  "generated_at": "2026-04-17T12:29:51.176154+00:00",
   "stats": {
-    "node_count": 23,
-    "edge_count": 30
+    "node_count": 2,
+    "edge_count": 0
   },
   "nodes": [
-    { "id": "doc:readme",       "type": "document", "name": "README",                         "file": "README.md" },
-    { "id": "doc:claude",       "type": "document", "name": "AI Assistant Guide",             "file": "CLAUDE.md" },
-    { "id": "doc:speckit",      "type": "document", "name": "vCon Ecosystem Spec Kit",        "file": "vcon-ecosystem-speckit.md" },
-    { "id": "doc:usage-guide",  "type": "document", "name": "vCon Usage Guide",               "file": "VCON_USAGE_GUIDE.md" },
-    { "id": "doc:style-guide",  "type": "document", "name": "Code Style Guide",               "file": "CODE_STYLE_GUIDE.md" },
-    { "id": "doc:contributing", "type": "document", "name": "Contributing",                   "file": "CONTRIBUTING.md" },
-    { "id": "doc:quick-ref",    "type": "document", "name": "Developer Quick Reference",      "file": "DEVELOPER_QUICK_REFERENCE.md" },
-    { "id": "doc:glossary",     "type": "document", "name": "Glossary",                       "file": "GLOSSARY.md" },
-    { "id": "doc:compliance",   "type": "document", "name": "Spec Compliance Issues",         "file": "SPEC_COMPLIANCE_ISSUES.md" },
-    { "id": "doc:changelog",    "type": "document", "name": "Changelog",                      "file": "CHANGELOG.md" },
-
-    { "id": "spec:draft-ietf-vcon-vcon-core-02", "type": "spec", "name": "IETF vCon Core Draft 02", "url": "https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core" },
-
-    { "id": "repo:vcon-lib",                  "type": "repo", "name": "vcon-lib",                  "language": "python",     "role": "Canonical vCon data model library" },
-    { "id": "repo:vcon-server",               "type": "repo", "name": "vcon-server",               "language": "python",     "role": "Event-driven processing pipeline" },
-    { "id": "repo:vcon-mcp",                  "type": "repo", "name": "vcon-mcp",                  "language": "typescript", "role": "MCP server for AI agent access" },
-    { "id": "repo:conserver-extras",          "type": "repo", "name": "conserver-extras",          "language": "python",     "role": "Additional processing links (Claude, Llama, redaction, translation)" },
-    { "id": "repo:vcon-fadapter",             "type": "repo", "name": "vcon-fadapter",             "language": "python",     "role": "Fax/image file adapter" },
-    { "id": "repo:vcon-siprec-adapter",       "type": "repo", "name": "vcon-siprec-adapter",       "language": "python",     "role": "SIPREC session to vCon converter" },
-    { "id": "repo:laptop-vcon-adapter",       "type": "repo", "name": "laptop-vcon-adapter",       "language": "python",     "role": "Desktop + audio capture adapter" },
-    { "id": "repo:vcon-mac-wtf",              "type": "repo", "name": "vcon-mac-wtf",              "language": "python",     "role": "macOS MLX Whisper transcription server" },
-    { "id": "repo:vfun",                      "type": "repo", "name": "vfun",                      "language": "python",     "role": "GPU NeMo transcription + diarization pipeline" },
-    { "id": "repo:portal",                    "type": "repo", "name": "portal",                    "language": "sveltekit",  "role": "Analytics web portal" },
-    { "id": "repo:vcon-right-to-know",        "type": "repo", "name": "vcon-right-to-know",        "language": "python",     "role": "GDPR rights portal demo" },
-    { "id": "repo:conserver-pipeline-config", "type": "repo", "name": "conserver-pipeline-config", "language": "docker-yaml","role": "Production pipeline config" }
+    {
+      "id": "document:readme",
+      "type": "document",
+      "name": "README",
+      "file": "README.md"
+    },
+    {
+      "id": "document:claude-md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "file": "CLAUDE.md"
+    }
   ],
-  "edges": [
-    { "source": "doc:readme",       "target": "doc:speckit",                        "rel": "references" },
-    { "source": "doc:readme",       "target": "doc:claude",                         "rel": "references" },
-
-    { "source": "doc:claude",       "target": "doc:speckit",                        "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:usage-guide",                    "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:style-guide",                    "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:contributing",                   "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:quick-ref",                      "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:glossary",                       "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:compliance",                     "rel": "references" },
-    { "source": "doc:claude",       "target": "doc:changelog",                      "rel": "references" },
-
-    { "source": "doc:speckit",      "target": "spec:draft-ietf-vcon-vcon-core-02",  "rel": "implements" },
-    { "source": "doc:speckit",      "target": "repo:vcon-lib",                      "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vcon-server",                   "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vcon-mcp",                      "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:conserver-extras",              "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vcon-fadapter",                 "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vcon-siprec-adapter",           "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:laptop-vcon-adapter",           "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vcon-mac-wtf",                  "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vfun",                          "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:portal",                        "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:vcon-right-to-know",            "rel": "describes" },
-    { "source": "doc:speckit",      "target": "repo:conserver-pipeline-config",     "rel": "describes" },
-
-    { "source": "doc:usage-guide",  "target": "doc:speckit",                        "rel": "references" },
-    { "source": "doc:glossary",     "target": "doc:speckit",                        "rel": "references" },
-    { "source": "doc:quick-ref",    "target": "doc:speckit",                        "rel": "references" },
-    { "source": "doc:contributing", "target": "doc:style-guide",                    "rel": "references" },
-
-    { "source": "doc:compliance",   "target": "repo:vcon-mcp",                      "rel": "tracks_bugs_in" },
-    { "source": "doc:compliance",   "target": "spec:draft-ietf-vcon-vcon-core-02",  "rel": "implements" },
-
-    { "source": "repo:vcon-server", "target": "repo:vcon-lib",                      "rel": "depends_on" }
-  ],
-  "subsystems": [
-    { "id": "subsystem:spec-kit-docs", "name": "Spec Kit Documents", "members": [
-      "doc:readme", "doc:claude", "doc:speckit", "doc:usage-guide",
-      "doc:style-guide", "doc:contributing", "doc:quick-ref",
-      "doc:glossary", "doc:compliance", "doc:changelog"
-    ]},
-    { "id": "subsystem:core-pipeline", "name": "Core Processing Pipeline", "members": [
-      "repo:vcon-lib", "repo:vcon-server", "repo:conserver-extras", "repo:conserver-pipeline-config"
-    ]},
-    { "id": "subsystem:ingress-adapters", "name": "Ingress Adapters", "members": [
-      "repo:vcon-fadapter", "repo:vcon-siprec-adapter", "repo:laptop-vcon-adapter"
-    ]},
-    { "id": "subsystem:transcription", "name": "Transcription Services", "members": [
-      "repo:vcon-mac-wtf", "repo:vfun"
-    ]},
-    { "id": "subsystem:user-facing", "name": "User-Facing Apps", "members": [
-      "repo:portal", "repo:vcon-right-to-know", "repo:vcon-mcp"
-    ]}
-  ]
+  "edges": [],
+  "subsystems": []
 }
