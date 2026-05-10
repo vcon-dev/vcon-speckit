@@ -26,14 +26,9 @@ These are the most common spec-compliance mistakes. Full list: [speckit §Critic
 - **Timestamps:** ISO 8601 with timezone (`Z` suffix or explicit offset).
 - **`redacted`** and **`amended`** are mutually exclusive. `group` is reserved — do not use.
 
-## Don't copy these from sibling repos
+## Legacy field names (historical)
 
-The vcon-mcp repo has two legacy field names inherited from an older vCon container draft. **Do not propagate them into generated vCon JSON or new code elsewhere in the ecosystem.** See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) for details.
-
-- vcon-mcp DB/TS uses `appended` — spec name is **`amended`**.
-- vcon-mcp DB/TS uses `must_support` — spec name is **`critical`**.
-
-If reading from the vcon-mcp database, translate at the boundary when writing vCon JSON out.
+The canonical libraries (`vcon-lib` v0.9.1+, `vcon-js` v0.3.0+, `vcon-mcp` current main) all use the spec-correct names — `amended` and `critical`. If you encounter `appended` or `must_support` in older code branches, pre-v0.9.1 vcon-lib output, vcon-mcp's deprecated `must_support`/`appended` columns, or the `vcons_legacy` view, translate to the spec name when writing vCon JSON out. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed) for details.
 
 ## Spec target
 

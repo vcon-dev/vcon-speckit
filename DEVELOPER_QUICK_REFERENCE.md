@@ -89,7 +89,7 @@ OTEL_ENABLED, LOG_LEVEL
 |------|------|-----------|------|
 | vcon-lib, vcon-server | Python | FastAPI, Poetry | pytest |
 | vcon-mcp | TypeScript | MCP SDK, Zod | vitest |
-| portal | SvelteKit | Svelte 4, Tailwind | Playwright |
+| vcon-js | TypeScript | Jest | jest |
 
 ## UUID / Timestamp
 
