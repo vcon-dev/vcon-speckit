@@ -102,6 +102,7 @@ This map covers the public repositories in the [`vcon-dev`](https://github.com/v
 | **[vcon-speckit](https://github.com/vcon-dev/vcon-speckit)** | This kit — spec context for AI code generation |
 | **[vcon-docs](https://github.com/vcon-dev/vcon-docs)** | Documentation |
 | **[vcon-background-docs](https://github.com/vcon-dev/vcon-background-docs)** | Background documentation |
+| **[docs](https://github.com/vcon-dev/docs)** | _Archived_ — superseded placeholder; new docs live in `vcon-docs` and `vcon-background-docs` |
 | **[vcon-dev.github.io](https://github.com/vcon-dev/vcon-dev.github.io)** | GitHub Pages for the org |
 | **[awesome-vcon](https://github.com/vcon-dev/awesome-vcon)** | Awesome list for vCon |
 | **[homebrew-vcon](https://github.com/vcon-dev/homebrew-vcon)** | Homebrew tap for vCon tools |
