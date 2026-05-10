@@ -6,16 +6,18 @@ Use this doc before copying field names from another repo's source or database s
 
 ## Open Issues
 
-| Repo | Incorrect symbol | Correct spec name | Impact | Status | Source |
-|---|---|---|---|---|---|
-| vcon-mcp | `appended` (Supabase DB column + TypeScript type) | `amended` | Spec-breaking when writing vCon JSON; external consumers reject | Open | [speckit L160](vcon-ecosystem-speckit.md), commit `a33d3cc` |
-| vcon-mcp | `must_support` (Supabase DB column + TypeScript type) | `critical` | Spec-breaking when writing vCon JSON; critical-extension semantics lost | Open | [speckit L161](vcon-ecosystem-speckit.md), commit `a33d3cc` |
-
-Both vcon-mcp field names were inherited from an older vCon *container* draft that predated the current core spec. The internal storage column names are preserved for now, but any code that writes vCon JSON out — MCP tools, exports, SCITT payloads — MUST translate at the boundary.
+_None at this time._
 
 ## Closed Issues
 
-_None yet. Closed entries move here with the commit that fixed them and the date._
+| Repo | Incorrect symbol | Correct spec name | Impact | Source | Fixed in | Fixed on |
+|---|---|---|---|---|---|---|
+| vcon-lib | `appended` (Python attribute + serialized field) | `amended` | Spec-breaking when writing vCon JSON; external consumers reject | commit `a33d3cc` | vcon-lib `8461f2d` (v0.9.1) | 2026-04-16 |
+| vcon-lib | `must_support` (Python attribute + serialized field) | `critical` | Spec-breaking when writing vCon JSON; critical-extension semantics lost | commit `a33d3cc` | vcon-lib `8461f2d` (v0.9.1) | 2026-04-16 |
+| vcon-mcp | `appended` (Supabase DB column + TypeScript type) | `amended` | Spec-breaking when writing vCon JSON; external consumers reject | commit `a33d3cc` | migration `20251120150100_field_renames.sql`; `src/tools/handlers/schema.ts:34-44` | 2025-11-20 (DB) / current main (TS) |
+| vcon-mcp | `must_support` (Supabase DB column + TypeScript type) | `critical` | Spec-breaking when writing vCon JSON; critical-extension semantics lost | commit `a33d3cc` | migration `20251120150100_field_renames.sql`; `src/tools/handlers/schema.ts:34-44` | 2025-11-20 (DB) / current main (TS) |
+
+Both legacy names were inherited from an older vCon *container* draft that predated the current core spec. vcon-lib has renamed them at the API and serialization layer (v0.9.1). vcon-mcp added the spec-correct columns (`critical`, `amended`) alongside the legacy ones; the old columns are marked DEPRECATED via column comments and remain readable through the `vcons_legacy` view for back-compat. Removal of the legacy columns is pending a future migration.
 
 ## How to Add an Entry
 

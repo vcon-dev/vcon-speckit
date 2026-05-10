@@ -105,7 +105,7 @@ Reviewers will check:
 |-------------|-------------------|
 | Spec kit, style guide, contributing docs | vcon-speckit (this repo) |
 | Core vCon data model, validation | vcon-lib |
-| Processing links, pipeline config | vcon-server, conserver-extras |
+| Processing links, pipeline config | vcon-server |
 | MCP tools, Supabase schema | vcon-mcp |
 | Adapters (SIPREC, audio, etc.) | Respective adapter repos |
 | IETF drafts | background-docs or draft repos |

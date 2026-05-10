@@ -1,6 +1,6 @@
 # vCon Usage Guide
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-04-16.
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-07.
 
 > Companion to [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md). Where the speckit defines **what** the vCon data model is, this guide defines **how to use it** — for specific domains, feature-by-feature, and per adapter/link.
 
@@ -634,48 +634,9 @@ Minimal party representation — no `name`, `role`, or `validation`.
 
 ---
 
-#### `vcon-fadapter`
+#### `vcon-laptop`
 
-Converts fax image files (TIFF, JPEG, PNG) to vCon format.
-
-**Parties**
-
-| Field | Value |
-|-------|-------|
-| `tel` | Sender and receiver fax numbers |
-
-**Dialog**: None. Fax content is stored in attachments, not dialog.
-
-**Attachments**
-
-| Field | Value |
-|-------|-------|
-| `type` | `"fax_image"` (legacy — use `purpose` for new code) |
-| `body` | Base64-encoded image data |
-| `encoding` | `"base64url"` |
-| `filename` | Original image filename |
-| `mediatype` | `"image/tiff"`, `"image/jpeg"`, or `"image/png"` |
-
-**Tags**
-
-```json
-{
-  "source": "fax_adapter",
-  "original_filename": "fax-001.tiff",
-  "file_size": 102400,
-  "image_dimensions": "1728x2200",
-  "sender": "+15551234567",
-  "receiver": "+15559876543"
-}
-```
-
-**Spec notes**: Uses `type` on attachments (legacy). When reading fadapter output, treat `type: "fax_image"` as `purpose: "fax_image"`. No dialog present — don't assume index 0 exists.
-
----
-
-#### `laptop-vcon-adapter`
-
-Records agent desktop screen and audio for quality assurance and compliance.
+Records laptop screen, audio, and webcam for quality assurance and compliance ([vcon-dev/vcon-laptop](https://github.com/vcon-dev/vcon-laptop)).
 
 **Parties**
 
@@ -717,56 +678,11 @@ Plus any custom tags from `SessionMetadata.tags`.
 
 ---
 
-#### `vcon-pdf-adapter`
-
-Converts PDF documents to vCon, extracting text content.
-
-**Parties**
-
-| Field | Value |
-|-------|-------|
-| `name` | `"PDF Adapter"` (system) and PDF filename (document) |
-| `role` | `"system"` and `"document"` |
-
-**Dialog**
-
-| Field | Value |
-|-------|-------|
-| `type` | `"text"` |
-| `start` | Processing timestamp (ISO 8601) |
-| `parties` | `[0, 1]` |
-| `originator` | `1` (document is originator) |
-| `mediatype` | `"text/plain"` |
-| `body` | Extracted PDF text content |
-| `encoding` | `"none"` |
-
-**Attachments**
-
-| Field | Value |
-|-------|-------|
-| `type` | `"document"` (legacy — prefer `purpose: "document"`) |
-| `body` | Base64-encoded raw PDF |
-| `encoding` | `"base64url"` |
-| `filename` | Original PDF filename |
-| `mediatype` | `"application/pdf"` |
-
-**Tags**
-
-```json
-{
-  "source": "pdf_adapter",
-  "original_filename": "invoice.pdf",
-  "processed_at": "2025-06-01T14:00:00Z"
-}
-```
-
----
-
 ### Processing Links
 
-#### Claude / LLM Analysis Link (`conserver-extras`)
+#### Claude / LLM Analysis Link
 
-Appends an AI-generated analysis using Claude or compatible LLM.
+Pattern for a vcon-server link that appends an AI-generated analysis using Claude or a compatible LLM. Implement against the [link interface](vcon-ecosystem-speckit.md#creating-a-new-link-vcon-server); see [vcon-sample-link](https://github.com/vcon-dev/vcon-sample-link) for a public reference link implementation.
 
 **Analysis appended**
 
@@ -803,9 +719,9 @@ The link also appends an `extra.vendor_schema` object with the model name and pr
 
 ---
 
-#### Redaction Link (`conserver-extras`)
+#### Redaction Link
 
-Produces a de-identified vCon from an original, preserving the original for audit.
+Pattern for a vcon-server link that produces a de-identified vCon from an original while preserving the original for audit.
 
 **Output vCon changes**
 

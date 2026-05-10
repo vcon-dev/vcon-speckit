@@ -59,11 +59,13 @@ Use the speckit and code style guide to verify:
 | Repository | Language | Primary Use |
 |------------|----------|-------------|
 | vcon-lib | Python 3.12+ | Core vCon data model |
+| vcon-js | TypeScript | TypeScript vCon library |
 | vcon-server | Python 3.12+ | Processing pipeline (links, chains, storage) |
 | vcon-mcp | TypeScript 5.9+ | MCP server for AI agents |
-| conserver-extras | Python | Additional links (Claude, redaction, etc.) |
-| Adapters | Python | Ingress: SIPREC, audio, fax, screen capture |
-| portal | SvelteKit | Analytics web UI |
+| Adapters | Python | Ingress: SIPREC, Twilio, audio, laptop capture, etc. |
+| Transcription | Python | vcon-mac-wtf, wtf-server, wtf-transcript-converter, speechmatics-link |
+
+See [vcon-ecosystem-speckit.md §1](vcon-ecosystem-speckit.md#1-ecosystem-overview) for the complete list of public repositories in the [vcon-dev](https://github.com/vcon-dev) GitHub organization.
 
 ## Quick Links
 

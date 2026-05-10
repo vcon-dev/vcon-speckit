@@ -18,13 +18,13 @@ One-line definitions with pointers to the canonical section. When a term is defi
 
 **redacted** — A pointer on a vCon indicating it is a less-detailed derivative of a prior vCon (e.g. PII stripped for LLM processing). Mutually exclusive with `amended`.
 
-**amended** — A pointer on a vCon indicating it extends a prior vCon (e.g. appending new analysis). Mutually exclusive with `redacted`. **Note:** vcon-mcp DB column is incorrectly named `appended`; see [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md).
+**amended** — A pointer on a vCon indicating it extends a prior vCon (e.g. appending new analysis). Mutually exclusive with `redacted`. **History:** vcon-lib (≤ v0.9.0) and vcon-mcp originally used the legacy name `appended`; both have since renamed to the spec name. vcon-mcp keeps the legacy column as deprecated for back-compat. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed).
 
 **content_hash** — Integrity hash for externally referenced content. Format: `sha512-` + Base64Url of the SHA-512 digest. Required whenever `url` is used.
 
 **extension** — A named set of additional fields or semantics layered on top of core vCon. Listed in the top-level `extensions` array. See [speckit §Extension System](vcon-ecosystem-speckit.md#8-extension-system).
 
-**critical extension** — An extension listed in the `critical` array. Implementations that do not support a critical extension MUST refuse to process the vCon. **Note:** vcon-mcp DB column is incorrectly named `must_support`; see [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md).
+**critical extension** — An extension listed in the `critical` array. Implementations that do not support a critical extension MUST refuse to process the vCon. **History:** vcon-lib (≤ v0.9.0) and vcon-mcp originally used the legacy name `must_support`; both have since renamed to the spec name. vcon-mcp keeps the legacy column as deprecated for back-compat. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed).
 
 **UUIDv8** — Version 8 UUID (timestamp-based with FQHN hash). Preferred UUID format for vCons. See [speckit §UUID Convention](vcon-ecosystem-speckit.md#uuid-convention).
 
@@ -48,8 +48,6 @@ One-line definitions with pointers to the canonical section. When a term is defi
 
 **Conserver** — Colloquial name for vcon-server (the conversation-server processing pipeline).
 
-**Portal** — SvelteKit analytics web UI for browsing vCons, running AI chat, and managing users.
-
 **MCP tool** — A named tool exposed by vcon-mcp via Model Context Protocol. Input validated with Zod; errors returned via `McpError`. See [speckit §vcon-mcp MCP Tools](vcon-ecosystem-speckit.md#vcon-mcp-mcp-tools-30).
 
 ## Telephony & Identity
@@ -68,7 +66,7 @@ One-line definitions with pointers to the canonical section. When a term is defi
 
 **lawful basis** — GDPR lawful-basis extension ([draft-howe-vcon-lawful-basis](https://datatracker.ietf.org/doc/draft-howe-vcon-lawful-basis/)). Carries consent / legal-obligation metadata. See [speckit §Lawful Basis Extension](vcon-ecosystem-speckit.md#lawful-basis-extension-gdpr-compliance).
 
-**WTF** — World Transcription Format. Compact transcription schema produced by vcon-mac-wtf and vfun. See [speckit §WTF Extension](vcon-ecosystem-speckit.md#wtf-extension-world-transcription-format).
+**WTF** — World Transcription Format. Compact transcription schema produced by vcon-mac-wtf, wtf-server, speechmatics-link, and the wtf-transcript-converter. See [speckit §WTF Extension](vcon-ecosystem-speckit.md#wtf-extension-world-transcription-format).
 
 **JWS** — JSON Web Signature. A signed vCon is wrapped as JWS General JSON Serialization.
 

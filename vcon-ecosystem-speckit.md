@@ -1,6 +1,6 @@
 # vCon Ecosystem — Spec Kit for Code Generation & Maintenance
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-04-16.
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-07.
 
 > Use this document as context when generating, reviewing, or maintaining code across the vCon ecosystem. It captures architecture, conventions, data models, integration points, and standards compliance requirements.
 
@@ -12,29 +12,127 @@ The vCon ecosystem implements the IETF vCon (Virtual Conversation) standard acro
 
 ### Repository Map
 
-| Repository | Language | Purpose | Role |
-|---|---|---|---|
-| **vcon-lib** | Python 3.12+ | Core vCon data model library | Canonical vCon object implementation |
-| **vcon-server** | Python 3.12+ | Conversation processing pipeline | Event-driven processing engine with pluggable links and storage backends |
-| **vcon-mcp** | TypeScript 5.9+ | MCP server for AI agent access | Model Context Protocol interface to vCon data |
-| **conserver-extras** | Python | Additional processing links | Claude analysis, Llama analysis, redaction, translation |
-| **vcon-fadapter** | Python 3.10+ | Fax/image file adapter | File system/S3 watcher that creates vCons from images |
-| **vcon-siprec-adapter** | Python | SIP recording adapter | Converts SIPREC (RFC 7866) sessions to vCons |
-| **laptop-vcon-adapter** | Python | Screen/audio capture adapter | Records agent desktop + audio into vCons |
-| **vcon-mac-wtf** | Python/FastAPI | macOS transcription server | MLX Whisper on Apple Silicon, outputs WTF format |
-| **vfun** | Python/PyTorch | GPU transcription pipeline | NeMo-based batch transcription with speaker diarization |
-| **portal** | SvelteKit/Node | Analytics web portal | Conversation analytics, user management, AI chat |
-| **vcon-right-to-know** | Python/Streamlit | Privacy rights portal | GDPR Right to Access / Right to Erasure demo |
-| **conserver-pipeline-config** | Docker/YAML | Production pipeline config | 64-worker orchestration with GPU transcription |
+This map covers the public repositories in the [`vcon-dev`](https://github.com/vcon-dev) GitHub organization. Some closed-source production deployments (e.g. proprietary GPU transcription, SaaS analytics portals, internal pipeline configs) are not part of this ecosystem map and are out of scope for code generation against this kit. Forked upstream projects are listed at the end for reference.
+
+#### Core libraries (canonical implementations)
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[vcon-lib](https://github.com/vcon-dev/vcon-lib)** | Python 3.12+ | Canonical vCon object library |
+| **[vcon-js](https://github.com/vcon-dev/vcon-js)** | TypeScript | TypeScript vCon library |
+| **[pydantic-vcon](https://github.com/vcon-dev/pydantic-vcon)** | Python | Pydantic models for vCon validation |
+
+#### Server, MCP, and tooling
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[vcon-server](https://github.com/vcon-dev/vcon-server)** | Python 3.12+ | Event-driven processing pipeline with pluggable links and storage backends |
+| **[vcon-mcp](https://github.com/vcon-dev/vcon-mcp)** | TypeScript 5.9+ | Model Context Protocol server for AI agent access to vCon data |
+| **[vcon-server-cli](https://github.com/vcon-dev/vcon-server-cli)** | — | CLI to manage vcon-server Docker containers |
+| **[vcon-admin](https://github.com/vcon-dev/vcon-admin)** | — | Admin interface for vCon operators |
+| **[vcon-app-template](https://github.com/vcon-dev/vcon-app-template)** | — | Generic application template for vCon stores |
+| **[vcon-info](https://github.com/vcon-dev/vcon-info)** | — | vcon.info site |
+| **[vcon-desk-viewer](https://github.com/vcon-dev/vcon-desk-viewer)** | — | Desktop vCon viewer |
+| **[vscode-vcon-viewer](https://github.com/vcon-dev/vscode-vcon-viewer)** | — | VS Code extension for inspecting vCon files |
+| **[vcon-zip](https://github.com/vcon-dev/vcon-zip)** | — | VCON ZIP implementation |
+
+#### Capture / ingest adapters
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[vcon-siprec-adapter](https://github.com/vcon-dev/vcon-siprec-adapter)** | Python | SIPREC (RFC 7866) sessions → vCons |
+| **[vcon-twilio-adapter](https://github.com/vcon-dev/vcon-twilio-adapter)** | Python | Twilio recordings → vCons |
+| **[vcon-telephony-adapters](https://github.com/vcon-dev/vcon-telephony-adapters)** | Python | Twilio webhook receiver that creates vCons |
+| **[vcon-audio-adapter](https://github.com/vcon-dev/vcon-audio-adapter)** | Python | Directory watcher for audio files; emits vCons |
+| **[vcon-eleven-labs-adapter](https://github.com/vcon-dev/vcon-eleven-labs-adapter)** | — | ElevenLabs → vCon adapter |
+| **[vcon-laptop](https://github.com/vcon-dev/vcon-laptop)** | Python | Records laptop screen, audio, webcam into vCons |
+| **[sippy-conserver-adapter](https://github.com/vcon-dev/sippy-conserver-adapter)** | — | Sippy Soft → vCon |
+| **[signalwire_adapter](https://github.com/vcon-dev/signalwire_adapter)** | — | SignalWire → vCon |
+
+#### Transcription and WTF (World Transcription Format)
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[vcon-mac-wtf](https://github.com/vcon-dev/vcon-mac-wtf)** | Python/FastAPI | MLX Whisper on Apple Silicon; outputs WTF format |
+| **[wtf-server](https://github.com/vcon-dev/wtf-server)** | — | Transcription server with NVIDIA NIM ASR (Parakeet/Canary) and WTF output |
+| **[wtf-transcript-converter](https://github.com/vcon-dev/wtf-transcript-converter)** | — | Convert transcript JSONs to/from WTF (Whisper, Deepgram, AssemblyAI, Rev.ai, Canary, Parakeet) |
+| **[speechmatics-link](https://github.com/vcon-dev/speechmatics-link)** | Python | vcon-server link for Speechmatics transcription with WTF output |
+
+#### Storage and sync
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[vcon-s3-loader](https://github.com/vcon-dev/vcon-s3-loader)** | — | S3 loader for vCons |
+| **[mongo-redis-sync](https://github.com/vcon-dev/mongo-redis-sync)** | Python | _Archived_ — automatic Redis → MongoDB sync for vCons |
+
+#### Search and analytics (open-source apps)
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[conversational_search](https://github.com/vcon-dev/conversational_search)** | Python/Streamlit | Streamlit app to search vCons in Elasticsearch |
+| **[conversation_gpt](https://github.com/vcon-dev/conversation_gpt)** | — | _Archived_ — OpenAI Assistants ↔ vCons demo |
+
+#### Privacy, SCITT, and lifecycle
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[vcon-right-to-know](https://github.com/vcon-dev/vcon-right-to-know)** | Python/Streamlit | _Archived_ — GDPR Right to Access / Right to Erasure demo |
+| **[scittles](https://github.com/vcon-dev/scittles)** | — | SCRAPI-compatible SCITT transparency service backed by SQLite |
+| **[scitt-action](https://github.com/vcon-dev/scitt-action)** | — | GitHub Action for the DataTrails SCITT implementation |
+
+#### Test data, demos, and examples
+
+| Repository | Language | Purpose |
+|---|---|---|
+| **[fake-vcons](https://github.com/vcon-dev/fake-vcons)** | — | Synthetic vCons for testing and demos |
+| **[vcon_faker](https://github.com/vcon-dev/vcon_faker)** | — | Faker library for generating vCons |
+| **[vcon-sample-link](https://github.com/vcon-dev/vcon-sample-link)** | — | Sample external vcon-server link that adds custom attachments |
+| **[ietf-meeting-vcons](https://github.com/vcon-dev/ietf-meeting-vcons)** | — | IETF working group sessions as vCons (meetings 110-124, 2021-2025) |
+| **[ietf2vcon](https://github.com/vcon-dev/ietf2vcon)** | — | Convert IETF meeting sessions to vCon format |
+| **[tadhack-2025](https://github.com/vcon-dev/tadhack-2025)** | — | Synthetic conversations for TADHACK 2025, Island Edition |
+| **[vcon-the-hacks](https://github.com/vcon-dev/vcon-the-hacks)** | — | TADHack 2026 hackathon submissions (15 projects with transcripts and summaries) |
+| **[load_test](https://github.com/vcon-dev/load_test)** | — | Load testing utilities |
+| **[matrix_vcon_emitter](https://github.com/vcon-dev/matrix_vcon_emitter)** | — | Matrix → vCon emitter |
+
+#### Documentation and meta
+
+| Repository | Purpose |
+|---|---|
+| **[vcon](https://github.com/vcon-dev/vcon)** | Home repo for vCons |
+| **[vcon-speckit](https://github.com/vcon-dev/vcon-speckit)** | This kit — spec context for AI code generation |
+| **[vcon-docs](https://github.com/vcon-dev/vcon-docs)** | Documentation |
+| **[vcon-background-docs](https://github.com/vcon-dev/vcon-background-docs)** | Background documentation |
+| **[vcon-dev.github.io](https://github.com/vcon-dev/vcon-dev.github.io)** | GitHub Pages for the org |
+| **[awesome-vcon](https://github.com/vcon-dev/awesome-vcon)** | Awesome list for vCon |
+| **[homebrew-vcon](https://github.com/vcon-dev/homebrew-vcon)** | Homebrew tap for vCon tools |
+| **[homebrew-tap](https://github.com/vcon-dev/homebrew-tap)** | Homebrew tap for vcon-dev tools |
+
+#### Upstream forks (vendored / referenced, not vcon-dev–originated)
+
+These are forks the org maintains for reference or local patching; they are upstream projects, not vCon implementations.
+
+| Repository | Upstream purpose |
+|---|---|
+| **[modelcontextprotocol](https://github.com/vcon-dev/modelcontextprotocol)** | MCP specification and documentation (referenced by vcon-mcp) |
+| **[pyVoIP](https://github.com/vcon-dev/pyVoIP)** | Pure-Python VoIP/SIP/RTP library |
+| **[rd-apmm-python-lib-rtp](https://github.com/vcon-dev/rd-apmm-python-lib-rtp)** | RTP packet decoding/encoding |
+| **[langchain](https://github.com/vcon-dev/langchain)** | LLM composability framework |
+| **[whisper](https://github.com/vcon-dev/whisper)** | OpenAI Whisper speech recognition |
+| **[TTS](https://github.com/vcon-dev/TTS)** | Coqui TTS deep-learning text-to-speech toolkit |
 
 ### IETF Standards Documents
 
 | Document | Status | Scope |
 |---|---|---|
-| **draft-ietf-vcon-vcon-core** | Working Group Draft | Core vCon specification ([authoritative repo](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core)) |
-| **draft-howe-vcon-lawful-basis** | Individual Draft | GDPR lawful basis extension |
-| **draft-howe-vcon-lifecycle** | Individual Draft | Lifecycle management via SCITT |
-| **privacy-primer-vcon** | Individual Draft | Privacy guidance for developers |
+| **[draft-ietf-vcon-vcon-core](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core)** | Working Group Draft | Core vCon specification (authoritative) |
+| **[draft-ietf-vcon-vcon-overview](https://github.com/vcon-dev/draft-ietf-vcon-vcon-overview)** | Working Group Draft | vCon — conversational data exchange overview |
+| **[draft-ietf-vcon-privacy-primer](https://github.com/vcon-dev/draft-ietf-vcon-privacy-primer)** | Working Group Draft | Privacy guidance for developers |
+| **[draft-howe-vcon-lawful-basis](https://github.com/vcon-dev/draft-howe-vcon-lawful-basis)** | Individual Draft | GDPR lawful basis extension |
+| **[draft-howe-vcon-lifecycle](https://github.com/vcon-dev/draft-howe-vcon-lifecycle)** | Individual Draft | Lifecycle management via SCITT |
+| **[draft-howe-vcon-wtf-extension](https://github.com/vcon-dev/draft-howe-vcon-wtf-extension)** | Individual Draft | World Transcription Format extension |
+| **[draft-howe-vcon-mcp-session](https://github.com/vcon-dev/draft-howe-vcon-mcp-session)** | Individual Draft | vCon extension for MCP sessions |
+| **[draft-howe-vcon-sip-signaling](https://github.com/vcon-dev/draft-howe-vcon-sip-signaling)** | Individual Draft | SIP signaling and STIR/SHAKEN data |
+| **[draft-howe-sipcore-mcp-extension](https://github.com/vcon-dev/draft-howe-sipcore-mcp-extension)** | Individual Draft | SIPcore MCP extension |
 
 ---
 
@@ -358,17 +456,6 @@ Source (files, SIP, screen capture) → Parse/Convert → Build vCon → POST to
 | Build target | ES2022 |
 | Strict mode | Enabled |
 
-### SvelteKit Repository (portal)
-
-| Concern | Standard Choice |
-|---|---|
-| Framework | SvelteKit 2.x, Svelte 4.x |
-| Styling | TailwindCSS |
-| ORM | Sequelize 6.x |
-| Auth | Auth0 + JWT |
-| Build | Vite 5.x |
-| Testing | Playwright (E2E), Vitest (unit) |
-
 ---
 
 ## 5. Naming Conventions
@@ -466,9 +553,9 @@ CREATE TABLE vcons (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   extensions JSONB,
-  must_support JSONB,  -- ⚠️ BUG: spec field is `critical`, not `must_support`
+  critical JSONB,      -- spec field; legacy `must_support` column still exists, deprecated, exposed via `vcons_legacy` view
   redacted JSONB,
-  appended JSONB,      -- ⚠️ BUG: spec field is `amended`, not `appended`
+  amended JSONB,       -- spec field; legacy `appended` column still exists, deprecated, exposed via `vcons_legacy` view
   tenant_id TEXT
 );
 
@@ -523,7 +610,7 @@ CREATE TABLE attachments (
 );
 ```
 
-> **vcon-mcp spec compliance gaps** (as of this writing): The vcon-mcp database and TypeScript types use `appended` (should be `amended`) and `must_support` (should be `critical`) — field names inherited from the older container draft. When writing new code that interacts with vcon-mcp, use the DB column names above; when writing spec-compliant vCon JSON, use `amended` and `critical`.
+> **vcon-mcp legacy column names** (historical): vcon-mcp originally used `appended` and `must_support` (inherited from the older container draft). The current schema and TypeScript types use the spec-correct `amended` and `critical`; the legacy columns persist as deprecated and remain readable through the `vcons_legacy` view for back-compat. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed).
 
 ### vcon-server (PostgreSQL via Peewee)
 
@@ -785,16 +872,6 @@ services:
     image: redis/redis-stack:latest
     volumes: [redis_data:/data]
     ports: ["6379:6379"]
-
-  vfun:
-    build: ./vfun
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
 ```
 
 ### Environment Variables (Common)
@@ -868,7 +945,6 @@ if (!result.success) {
 
 - **vcon-server API**: Token-based via `x-conserver-api-token` header
 - **External ingress**: Scoped API keys per ingress list
-- **Portal**: Auth0 with JWT tokens
 - **vcon-mcp**: Relies on MCP transport security (local STDIO or authenticated HTTP)
 
 ### Multi-Tenancy
