@@ -1,6 +1,6 @@
 # vCon Ecosystem — Spec Kit for Code Generation & Maintenance
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-07.
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-28 (against vcon-lib v0.9.4, vcon-js v0.4.0).
 
 > Use this document as context when generating, reviewing, or maintaining code across the vCon ecosystem. It captures architecture, conventions, data models, integration points, and standards compliance requirements.
 
@@ -666,10 +666,10 @@ has_permission = v.check_lawful_basis_permission("quality_assurance", party_inde
 
 ### WTF Extension (World Transcription Format)
 
-Standardized transcription format with multi-provider support.
+Standardized transcription format with multi-provider support. Transcripts default to `analysis[]`, not `attachments[]` — prefer `add_wtf_transcription_analysis()` (vcon-lib ≥ 0.9.2) for new code.
 
 ```python
-v.add_wtf_transcription_attachment(
+v.add_wtf_transcription_analysis(
     transcript={
         "segments": [
             {"start": 0.0, "end": 2.5, "text": "Hello", "speaker": "Speaker_0", "confidence": 0.95}
@@ -680,6 +680,8 @@ v.add_wtf_transcription_attachment(
     dialog_index=0
 )
 ```
+
+`add_wtf_transcription_attachment()` (same signature) remains available for the legacy `attachments[]` placement, but new pipelines should treat transcripts as derived analysis output.
 
 **Provider adapters**: Whisper, Deepgram, AssemblyAI
 **Export formats**: SRT, WebVTT
