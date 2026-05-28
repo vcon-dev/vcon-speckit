@@ -6,6 +6,14 @@ Commit hashes reference this repository.
 
 ---
 
+## 2026-05-28
+
+- Re-verified the spec kit against the latest shipped library releases:
+  - **vcon-lib v0.9.4** (commit `69ce755`, 2026-05-19): security-only dependency bumps. The functional changes since the last review (v0.9.1) landed in **v0.9.2** (`build_new()` emits `"vcon": "0.4.0"` and no longer initializes empty `group`/`redacted`; new `add_wtf_transcription_analysis()` helper) and **v0.9.3** (`add_tag()` now writes the spec-required `party: 0`/`dialog: 0` on the `tags` attachment).
+  - **vcon-js v0.4.0** (commit `1051335`, 2026-05-19): breaking vcon-core-02 compliance pass. Tags now emitted as a single `purpose: "tags"` attachment (`party: 0`, `dialog: 0`, `encoding: "json"`) with `addTag`/`getTag`/`tags` preserved as a read-through API; `addAnalysis` auto-stringifies object/array bodies and forces `encoding: "json"`; `Attachment.type` removed in favor of `purpose` (with `party`/`dialog` defaulting to 0); `group` removed (spec-reserved); `redacted` ⊥ `amended` enforced at the setters; `content_hash` validated as `sha512-<base64url>` and external `url` without `content_hash` now fails validation. 78/78 tests pass.
+- Updated the WTF example in [vcon-ecosystem-speckit.md §8](vcon-ecosystem-speckit.md#8-extension-system) to prefer `add_wtf_transcription_analysis()` (transcripts default to `analysis[]`, not `attachments[]`); noted the `_attachment` helper as the legacy placement.
+- Re-stamped the **Last reviewed** banner in [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md) and [VCON_USAGE_GUIDE.md](VCON_USAGE_GUIDE.md) to 2026-05-28, now naming the exact library versions reviewed against.
+
 ## 2026-05-07 (later)
 
 - Reframed the Repository Map in [vcon-ecosystem-speckit.md §1](vcon-ecosystem-speckit.md#1-ecosystem-overview) to cover **all public repositories in the [vcon-dev](https://github.com/vcon-dev) GitHub organization**, grouped by purpose (core libraries; server/MCP/tooling; capture adapters; transcription/WTF; storage/sync; search/analytics; privacy/SCITT; test data; documentation; upstream forks). Each row now links to the GitHub repo.
