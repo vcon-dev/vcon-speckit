@@ -69,6 +69,7 @@ Use `type: "transfer"` dialogs to link call segments. Transfer dialogs MUST NOT 
   "vcon": "0.4.0",
   "uuid": "...",
   "created_at": "2025-06-01T14:00:00Z",
+  "extensions": ["role"],
   "parties": [
     { "tel": "+15551234567", "name": "Jane Smith", "validation": "verified", "role": "customer" },
     { "sip": "sip:agent1@contact-center.example", "name": "Bob Lee", "role": "agent" }
@@ -137,7 +138,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
   "vcon": "0.4.0",
   "uuid": "...",
   "created_at": "2025-06-01T09:00:00Z",
-  "extensions": ["lawful_basis"],
+  "extensions": ["lawful_basis", "role"],
   "critical": ["lawful_basis"],
   "redacted": {
     "uuid": "original-uuid-here",
@@ -213,6 +214,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
 
 ```json
 {
+  "extensions": ["role"],
   "parties": [
     { "tel": "+15559876543", "name": "Alex Chen", "uuid": "crm-contact-789", "role": "prospect", "validation": "crm" },
     { "tel": "+15551112222", "name": "Dana Park",  "uuid": "crm-rep-42",      "role": "rep" }
@@ -266,6 +268,7 @@ Each message exchange can be a separate text dialog entry, or the full transcrip
 
 ```json
 {
+  "extensions": ["role"],
   "parties": [
     { "mailto": "customer@example.com", "name": "Sam Rivera", "role": "customer" },
     { "sip": "sip:support1@helpdesk.example", "name": "Tier 1 Agent", "role": "agent" },
