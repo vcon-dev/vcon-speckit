@@ -1,6 +1,6 @@
 # vCon Usage Guide
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-28 (against vcon-lib v0.9.4, vcon-js v0.4.0).
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-30 (against vcon-lib v0.9.4, vcon-js v0.4.0; lawful_basis draft -02).
 
 > Companion to [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md). Where the speckit defines **what** the vCon data model is, this guide defines **how to use it** — for specific domains, feature-by-feature, and per adapter/link.
 
@@ -175,7 +175,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
       "purpose": "lawful_basis",
       "start": "2025-06-01T09:00:00Z",
       "party": 1, "dialog": 0,
-      "body": "{\"lawful_basis\": \"consent\", \"proof\": {\"type\": \"electronic\", \"timestamp\": \"2025-06-01T08:55:00Z\"}}",
+      "body": "{\"lawful_basis\": \"consent\", \"expiration\": \"2026-06-01T09:00:00Z\", \"purpose_grants\": [{\"purpose\": \"recording\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}, {\"purpose\": \"transcription\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}, {\"purpose\": \"analysis\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}], \"proof_mechanisms\": [{\"proof_type\": \"signed_document\", \"timestamp\": \"2025-06-01T08:55:00Z\", \"proof_data\": {\"form\": \"hipaa-consent-v3\"}}]}",
       "encoding": "json"
     }
   ]

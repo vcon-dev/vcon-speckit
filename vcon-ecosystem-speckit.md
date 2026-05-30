@@ -1,6 +1,6 @@
 # vCon Ecosystem — Spec Kit for Code Generation & Maintenance
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-28 (against vcon-lib v0.9.4, vcon-js v0.4.0).
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-30 (against vcon-lib v0.9.4, vcon-js v0.4.0; lawful_basis draft -02).
 
 > Use this document as context when generating, reviewing, or maintaining code across the vCon ecosystem. It captures architecture, conventions, data models, integration points, and standards compliance requirements.
 
@@ -392,13 +392,19 @@ Transport (STDIO/HTTP) → Server → Tool Handlers → Database (Supabase + Red
 
 ```python
 from vcon import Vcon
+from vcon.party import Party
+from vcon.dialog import Dialog
 
 v = Vcon.build_new()
-v.set_party_parameter("tel", "+15551234567")
-v.add_dialog_inline_text("Hello world", 0, [0, 1])
-v.add_analysis("summary", "Summary text", vendor="OpenAI", product="GPT-4")
+v.add_party(Party(tel="+15551234567", name="Alice"))
+v.add_party(Party(tel="+15559876543", name="Bob"))
+v.add_dialog(Dialog(type="text", start="2025-01-15T10:30:00Z", parties=[0, 1], body="Hello world", encoding="none"))
+# add_analysis is keyword-only; type, dialog, vendor, body are required
+v.add_analysis(type="summary", dialog=0, vendor="OpenAI", product="GPT-4", body="Summary text", encoding="none")
 v.to_json()
 ```
+
+> `Party` and `Dialog` import from their submodules (`vcon.party`, `vcon.dialog`); only `Vcon` is exported from the package root. Prefer these helpers over writing `vcon_dict[...]` directly.
 
 **Extension framework**:
 - `ExtensionRegistry` for registration and discovery
@@ -649,14 +655,18 @@ Implemented in vcon-lib, referenced by IETF draft.
 v = Vcon.build_new()
 v.add_lawful_basis_attachment(
     lawful_basis="consent",
+    expiration="2026-01-15T10:00:00Z",   # REQUIRED — ISO 8601, or None for indefinite
     purpose_grants=[{
         "purpose": "quality_assurance",
         "granted": True,
-        "conditions": "Recording for training purposes"
+        "granted_at": "2025-01-15T10:00:00Z",   # REQUIRED per grant
+        "conditions": ["Recording for training purposes"]  # optional array of strings
     }],
     party_index=0,
-    proof_mechanism={"type": "verbal", "timestamp": "2025-01-15T10:00:00Z"}
 )
+# Optional proof: proof_mechanisms=[{"proof_type": "verbal_confirmation",
+#   "timestamp": "...", "proof_data": {...}}] — the helper expects ProofMechanism
+#   objects, so for dict input build the body per the draft and append directly.
 
 # Check permission
 has_permission = v.check_lawful_basis_permission("quality_assurance", party_index=0)
@@ -773,6 +783,7 @@ class MyStorage(Storage):
 # Standard test structure
 import pytest
 from vcon import Vcon
+from vcon.party import Party
 
 class TestVconCreation:
     def test_build_new(self):
@@ -782,7 +793,7 @@ class TestVconCreation:
 
     def test_add_party(self):
         v = Vcon.build_new()
-        v.set_party_parameter("tel", "+15551234567")
+        v.add_party(Party(tel="+15551234567"))
         assert len(v.parties) == 1
 
     @pytest.mark.anyio

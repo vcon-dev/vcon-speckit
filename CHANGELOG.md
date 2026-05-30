@@ -6,6 +6,14 @@ Commit hashes reference this repository.
 
 ---
 
+## 2026-05-30
+
+- Corrected the **lawful basis** examples to match `draft-howe-vcon-lawful-basis-02`. The draft moved the attachment identifier from `type` to `purpose` (Section "Attachment Container": *"purpose: MUST be set to lawful_basis"*); the spec kit and `vcon-lib` v0.9.4 already used `purpose`, so no field rename was needed — but the example **bodies** were non-compliant:
+  - [VCON_USAGE_GUIDE.md](VCON_USAGE_GUIDE.md) §1.2 healthcare example — rewrote the `lawful_basis` attachment body to the spec-required shape: `lawful_basis`, `expiration`, `purpose_grants[]` (each `purpose`/`granted`/`granted_at`), and `proof_mechanisms[]` (each `proof_type`/`timestamp`/`proof_data`). The previous body used an undefined `proof` object and omitted the required `expiration` and `purpose_grants`.
+  - [vcon-ecosystem-speckit.md §8](vcon-ecosystem-speckit.md#8-extension-system) — fixed the `add_lawful_basis_attachment()` call to pass the required `expiration` argument and per-grant `granted_at`; dropped the non-existent `proof_mechanism=` kwarg and noted that `proof_mechanisms` expects `ProofMechanism` objects (build the body dict directly for dict input).
+- Fixed the **vcon-lib quick-start** ([§3.3](vcon-ecosystem-speckit.md#33-vcon-lib-python-library)) and the §10 test snippet, which called methods that do not exist in `vcon-lib` v0.9.4 (`set_party_parameter()`, `add_dialog_inline_text()`) and invoked `add_analysis()` positionally without the required `dialog`. They now use the canonical tested idiom — `from vcon.party import Party` / `from vcon.dialog import Dialog` (only `Vcon` is exported from the package root), `add_party(Party(...))`, `add_dialog(Dialog(...))`, and keyword-only `add_analysis(type=, dialog=, vendor=, body=, ...)`. Both snippets were executed against vcon-lib v0.9.4 to confirm they run.
+- Re-stamped the **Last reviewed** banner in [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md) and [VCON_USAGE_GUIDE.md](VCON_USAGE_GUIDE.md) to 2026-05-30.
+
 ## 2026-05-28
 
 - Re-verified the spec kit against the latest shipped library releases:
