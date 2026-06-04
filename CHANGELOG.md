@@ -6,6 +6,13 @@ Commit hashes reference this repository.
 
 ---
 
+## 2026-06-04
+
+- **vcon-lib v0.9.5** — external-media `content_hash` compliance fix. `Dialog` now computes and emits `content_hash` in the spec form `sha512-<base64url>` with no padding, per [draft-ietf-vcon-vcon-core-02](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core) and matching the canonical `vcon-info` examples (`docs/examples/*.vcon`, all `sha512-...`). Before v0.9.5 the Dialog helpers (`add_external_data`, `add_inline_data`, `add_image_data`, `to_inline_data`) emitted an **unprefixed, padded base64url SHA-256** digest, which strict parsers reject. This closes the Python/TypeScript divergence noted in the [2026-05-28](#2026-05-28) entry, where `vcon-js` v0.4.0 already validated `content_hash` as `sha512-<base64url>` but `vcon-lib` still emitted bare SHA-256.
+  - `calculate_content_hash()` now defaults to `sha512` and returns the algorithm-prefixed form; `verify_content_hash()` and `is_external_data_changed()` parse the `sha512-`/`sha256-` prefix and still verify legacy unprefixed SHA-256 hashes, so existing vCons are unaffected.
+  - New reusable helpers exported from the package root: `from vcon import compute_content_hash, parse_content_hash_algorithm`. Prefer `compute_content_hash(data, algorithm="sha512")` over hand-rolling base64url + hashlib when producing external/inline media hashes (adapters, generators).
+- Logged the fix as a Closed row in [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (vcon-lib external-media `content_hash` value format). The **Last reviewed** banners are left unchanged: this was a targeted content_hash fix, not a full re-verification of the kit against v0.9.5.
+
 ## 2026-05-30
 
 - Corrected the **lawful basis** examples to match `draft-howe-vcon-lawful-basis-02`. The draft moved the attachment identifier from `type` to `purpose` (Section "Attachment Container": *"purpose: MUST be set to lawful_basis"*); the spec kit and `vcon-lib` v0.9.4 already used `purpose`, so no field rename was needed — but the example **bodies** were non-compliant:
