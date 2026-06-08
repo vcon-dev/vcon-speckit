@@ -1,6 +1,6 @@
 # vCon Ecosystem — Spec Kit for Code Generation & Maintenance
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-30 (against vcon-lib v0.9.4, vcon-js v0.4.0; lawful_basis draft -02).
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-06-08 (against vcon-lib v0.9.5, vcon-js v0.4.0; lawful_basis draft -02). Repository map now includes the full vcon-dev org plus the proprietary VCONIC org.
 
 > Use this document as context when generating, reviewing, or maintaining code across the vCon ecosystem. It captures architecture, conventions, data models, integration points, and standards compliance requirements.
 
@@ -12,7 +12,7 @@ The vCon ecosystem implements the IETF vCon (Virtual Conversation) standard acro
 
 ### Repository Map
 
-This map covers the public repositories in the [`vcon-dev`](https://github.com/vcon-dev) GitHub organization. Some closed-source production deployments (e.g. proprietary GPU transcription, SaaS analytics portals, internal pipeline configs) are not part of this ecosystem map and are out of scope for code generation against this kit. Forked upstream projects are listed at the end for reference.
+This map covers the public repositories in the [`vcon-dev`](https://github.com/vcon-dev) GitHub organization (the canonical open-source ecosystem). Forked upstream projects are listed at the end of this subsection for reference. The proprietary [`VCONIC`](https://github.com/VCONIC) organization repositories — commercial conserver builds, customer deployments, apps, and ops tooling — are listed separately under "VCONIC repositories" below; they build on the open-source ecosystem but are not open source.
 
 #### Core libraries (canonical implementations)
 
@@ -35,6 +35,8 @@ This map covers the public repositories in the [`vcon-dev`](https://github.com/v
 | **[vcon-desk-viewer](https://github.com/vcon-dev/vcon-desk-viewer)** | — | Desktop vCon viewer |
 | **[vscode-vcon-viewer](https://github.com/vcon-dev/vscode-vcon-viewer)** | — | VS Code extension for inspecting vCon files |
 | **[vcon-zip](https://github.com/vcon-dev/vcon-zip)** | — | VCON ZIP implementation |
+| **[vcon-mcp-proxy](https://github.com/vcon-dev/vcon-mcp-proxy)** | — | Proxy that captures MCP sessions as vCons and posts them to a conserver |
+| **[vcon-mcp-adapters](https://github.com/vcon-dev/vcon-mcp-adapters)** | — | Convert AI-agent framework traces into vCon containers with MCP session data; CLI for post-hoc conversion plus SDK |
 
 #### Capture / ingest adapters
 
@@ -48,6 +50,10 @@ This map covers the public repositories in the [`vcon-dev`](https://github.com/v
 | **[vcon-laptop](https://github.com/vcon-dev/vcon-laptop)** | Python | Records laptop screen, audio, webcam into vCons |
 | **[sippy-conserver-adapter](https://github.com/vcon-dev/sippy-conserver-adapter)** | — | Sippy Soft → vCon |
 | **[signalwire_adapter](https://github.com/vcon-dev/signalwire_adapter)** | — | SignalWire → vCon |
+| **[vcon-fadapter](https://github.com/vcon-dev/vcon-fadapter)** | Python | Filesystem watcher for fax images; extracts sender/receiver from filenames and creates vCons |
+| **[vcon-email-adapter](https://github.com/vcon-dev/vcon-email-adapter)** | — | Convert email (`.eml`, `.mbox`, or folders) into spec-compliant vCons |
+| **[vcon-vac-adapter](https://github.com/vcon-dev/vcon-vac-adapter)** | — | Convert AI-agent session transcripts (Claude Code, Anthropic Messages, OpenAI Responses/Agents SDK) into vCons |
+| **[vcon-adapter-template](https://github.com/vcon-dev/vcon-adapter-template)** | — | Scaffold for building a new source-platform → vCon adapter |
 
 #### Transcription and WTF (World Transcription Format)
 
@@ -79,6 +85,7 @@ This map covers the public repositories in the [`vcon-dev`](https://github.com/v
 | **[vcon-right-to-know](https://github.com/vcon-dev/vcon-right-to-know)** | Python/Streamlit | _Archived_ — GDPR Right to Access / Right to Erasure demo |
 | **[scittles](https://github.com/vcon-dev/scittles)** | — | SCRAPI-compatible SCITT transparency service backed by SQLite |
 | **[scitt-action](https://github.com/vcon-dev/scitt-action)** | — | GitHub Action for the DataTrails SCITT implementation |
+| **[vcon-vac](https://github.com/vcon-dev/vcon-vac)** | — | Verifiable Agent Conversations (VAC): vCon extension for agent auditability and interaction traceability |
 
 #### Test data, demos, and examples
 
@@ -121,6 +128,84 @@ These are forks the org maintains for reference or local patching; they are upst
 | **[whisper](https://github.com/vcon-dev/whisper)** | OpenAI Whisper speech recognition |
 | **[TTS](https://github.com/vcon-dev/TTS)** | Coqui TTS deep-learning text-to-speech toolkit |
 
+### VCONIC repositories (proprietary)
+
+These repositories live in the [`VCONIC`](https://github.com/VCONIC) GitHub organization. They are the commercial layer built on top of the open-source ecosystem above: licensed conserver builds, customer deployments, applications, realtime services, and ops tooling. They are not open source and are out of scope for open-source code generation, but are listed here for context and cross-referencing. Where a README was absent, the purpose below is inferred from the repository name and should be verified before relying on it.
+
+#### Conserver, links, and pipeline
+
+| Repository | Purpose |
+|---|---|
+| **conserver** | VCONIC conserver deployment (no README; verify) |
+| **vcon-server-enterprise** | Commercial build of `vcon-server` that enforces a per-vCon license check before processing; same Docker image as open source |
+| **conserver-link-check-consent** | vcon-server link that gates a vCon on the validity of its `lawful_basis` attachment |
+| **conserver-link-consentify** | vcon-server link that produces a `lawful_basis` attachment on each vCon |
+| **conserver-link-consig** | vCon link that processes Consig request attachments and enriches vCons with metadata and analysis |
+| **conserver-pipeline-config** | Documentation, config, and Claude Code skills for the pipeline on the Strolid GPU host |
+| **vconic-conserver-link-check-consent** | Appears to be a renamed/placeholder copy of `conserver-link-check-consent` (empty README; verify) |
+| **vconic-conserver-link-consentify** | Appears to be a renamed/placeholder copy of `conserver-link-consentify` (empty README; verify) |
+
+#### Adapters and capture
+
+| Repository | Purpose |
+|---|---|
+| **vcon-anthropic-chats** | Convert Claude AI chats into IETF vCons |
+| **vconic-adapter-nice** | NICE platform → vCon adapter (no README; verify) |
+| **vcon-m5-stack-audio** | Records audio from the M5Stack Core2 microphone and publishes each as a vCon |
+| **link-wellsky-records-to-vcons** | Links WellSky records to vCons (empty README; verify) |
+| **customer-frontline-wellsky-report-downloader** | WellSky report downloader for the Frontline customer |
+
+#### Applications and portals
+
+| Repository | Purpose |
+|---|---|
+| **vKong** | vCon-native revenue intelligence platform (a Gong equivalent without the vendor lock-in) |
+| **vconic-app-saleshub** | AI sales acceleration platform built on the vCon standard |
+| **vconic-app-portal** | White-label SvelteKit portal: conversation analytics, user management, GPT-powered chat |
+| **vconic-app-iot-portal** | Full-stack portal (React + Vite frontend, Express backend) managing vCon uploads from IoT recording devices |
+| **vconic-r2d2** | Conversational tag manager for vCons; web app on a vcon-mcp server using Claude as the tag engine |
+| **vconic-pov-voc** | Six-screen demo built on the Strolid vCon corpus |
+
+#### Realtime
+
+| Repository | Purpose |
+|---|---|
+| **vcon-realtime** | Self-hosted speech-to-text streaming service with vCon lifecycle support |
+| **vconic-realtime-starter-app** | Starter application for the BDS WO4 realtime direction |
+| **vconic-realtime-patent** | Realtime patent work (no README; verify) |
+| **vconic-core-vfun** | Core vFun component (README is code-only; verify) |
+
+#### Knowledge, docs, and brand
+
+| Repository | Purpose |
+|---|---|
+| **vconic-docs** | VCONIC knowledge base: what is deployed per customer, platform capabilities, performance |
+| **vconic-kb** | VCONIC knowledge base (overlaps with `vconic-docs`; verify which is canonical) |
+| **vconic-design-system** | Vconic brand and document/design system |
+| **claude-skills** | Shared Claude Code skills for the VCONIC organization |
+
+#### Ops and deployment
+
+| Repository | Purpose |
+|---|---|
+| **vconic-ops-deploy** | Deployment tooling (no README; verify) |
+| **vconic-ops-deployment-manager** | SvelteKit app with Google Workspace OAuth and domain restrictions for deployments |
+| **vconic-ops-runbook** | Deployment config, operational scripts, and Claude Code skills for the pipeline |
+| **vconic-ops-test-environments** | Test environment definitions (no README; verify) |
+| **vconic-performance** | Proprietary performance and intelligence layer for the vCon ecosystem |
+
+#### Data, corpora, and customer deployments
+
+| Repository | Purpose |
+|---|---|
+| **example-vcons** | Example vCons (no README; verify) |
+| **vconic-case-management-conversations** | Fully synthetic test corpus of medical case-management conversations |
+| **ai-human-annotation** | AI and human annotation tooling/data (no README; verify) |
+| **merkle-tree-viz** | Merkle-tree visualization (no README; verify) |
+| **customer-bds** | BDS customer pipeline config, docs, and Claude Code skills |
+| **customer-bds-recordings** | BDS customer recordings (no README; verify) |
+| **customer-dt** | Deutsche Telekom POC deployment config, documentation, and operational scripts |
+
 ### IETF Standards Documents
 
 | Document | Status | Scope |
@@ -131,9 +216,11 @@ These are forks the org maintains for reference or local patching; they are upst
 | **[draft-howe-vcon-lawful-basis](https://github.com/vcon-dev/draft-howe-vcon-lawful-basis)** | Individual Draft | GDPR lawful basis extension |
 | **[draft-howe-vcon-lifecycle](https://github.com/vcon-dev/draft-howe-vcon-lifecycle)** | Individual Draft | Lifecycle management via SCITT |
 | **[draft-howe-vcon-wtf-extension](https://github.com/vcon-dev/draft-howe-vcon-wtf-extension)** | Individual Draft | World Transcription Format extension |
-| **[draft-howe-vcon-mcp-session](https://github.com/vcon-dev/draft-howe-vcon-mcp-session)** | Individual Draft | vCon extension for MCP sessions |
+| **[draft-howe-vcon-agent-session](https://github.com/vcon-dev/draft-howe-vcon-agent-session)** | Individual Draft | vCon Agent Session extension (successor to the earlier MCP-session draft) |
+| **[draft-howe-vcon-provenance](https://github.com/vcon-dev/draft-howe-vcon-provenance)** | Individual Draft | vCon generation provenance extension |
 | **[draft-howe-vcon-sip-signaling](https://github.com/vcon-dev/draft-howe-vcon-sip-signaling)** | Individual Draft | SIP signaling and STIR/SHAKEN data |
 | **[draft-howe-sipcore-mcp-extension](https://github.com/vcon-dev/draft-howe-sipcore-mcp-extension)** | Individual Draft | SIPcore MCP extension |
+| **[draft-birkholz-verifiable-agent-conversations](https://datatracker.ietf.org/doc/draft-birkholz-verifiable-agent-conversations/)** | Individual Draft (external) | Verifiable Agent Conversations; basis for the `vcon-vac` extension |
 
 ---
 
