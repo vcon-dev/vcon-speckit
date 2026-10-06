@@ -1,6 +1,6 @@
 # vCon Ecosystem — Spec Kit for Code Generation & Maintenance
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-06-08 (against vcon-lib v0.9.5, vcon-js v0.4.0; lawful_basis draft -02). Repository map now includes the full vcon-dev org plus the proprietary VCONIC org.
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-04`. The `vcon` syntax parameter value is `"0.4.0"`. Last reviewed: 2026-10-06 (against vcon-lib v0.9.5, vcon-js v0.4.0; lawful_basis draft -02). Repository map now includes the full vcon-dev org plus the proprietary VCONIC org.
 
 > Use this document as context when generating, reviewing, or maintaining code across the vCon ecosystem. It captures architecture, conventions, data models, integration points, and standards compliance requirements.
 
@@ -248,8 +248,8 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
 }
 ```
 
-**Notes (draft-02)**:
-- `vcon` is DEPRECATED as of RFC publication; extension mechanism replaces schema versioning. For syntax in this document, use `"0.4.0"`.
+**Notes (core-04)**:
+- `vcon`: syntax parameter. The value MUST be `"0.4.0"` for the syntax in core-04. The extension mechanism replaces schema versioning.
 - `extensions`: List of extension names used. SHOULD list all extensions for parameters not in core schema.
 - `critical`: List of incompatible extension names. Implementations that do not support listed extensions MUST NOT process the vCon.
 - `redacted` and `amended` are mutually exclusive with each other (and with `group`, which is reserved for future extension — do not use). `redacted` references a prior (less redacted) vCon; `amended` references a prior vCon that this version extends.
@@ -280,7 +280,7 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
 
 **Core party fields** (first 10 above) are defined in the authoritative spec. The last four (`jcard`, `timezone`, `role`, `meta`) are extension fields — they MUST be listed in the top-level `extensions` array when used.
 
-**UUID (draft-02)**: SHOULD use version 8 UUID (timestamp-based with FQHN hash for uniqueness).
+**UUID (core-04)**: SHOULD use version 8 UUID (timestamp-based with FQHN hash for uniqueness).
 
 ### Dialog Object
 
@@ -326,14 +326,14 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
   "vendor": "string (REQUIRED - who produced this)",
   "product": "string (model name/version)",
   "schema": "string (schema identifier — NOT schema_version)",
-  "body": "string (content — supports JSON, CSV, XML, plain text)",
+  "body": "string, or the JSON value itself when encoding is json",
   "encoding": "base64url | json | none",
   "url": "string (external reference)",
   "content_hash": "ContentHash | ContentHash[]"
 }
 ```
 
-**Analysis types (draft-02)**: `report`, `sentiment`, `summary`, `transcript`, `translation`, `tts`
+**Analysis types (core-04, SHOULD be one of)**: `report`, `sentiment`, `summary`, `transcript`, `translation`, `tts`. Extensions may define more, for example `wtf_transcription`.
 
 ### Attachment Object
 
@@ -345,14 +345,14 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
   "dialog": "number (dialog index, REQUIRED)",
   "mediatype": "string (MIME type)",
   "filename": "string",
-  "body": "string",
+  "body": "string, or the JSON value itself when encoding is json",
   "encoding": "base64url | json | none",
   "url": "string",
   "content_hash": "ContentHash | ContentHash[]"
 }
 ```
 
-**Note (draft-02)**: The core spec uses `purpose` (not `type`). Extensions may use `type` for compatibility; tags convention uses `purpose: "tags"`.
+**Note (core-04)**: The core spec uses `purpose` (not `type`), and so does the lawful basis extension (`purpose: "lawful_basis"`). Readers may tolerate legacy `type`; writers MUST emit `purpose`. Tags convention uses `purpose: "tags"`.
 
 ### Critical Spec Compliance Rules
 
@@ -360,18 +360,18 @@ These corrections apply across ALL repositories. Violations are spec-breaking bu
 
 1. **Analysis `schema` field** — Use `schema`, NOT `schema_version`
 2. **Analysis `vendor` is REQUIRED** — Every analysis MUST include a vendor string
-3. **Analysis `body` is a string** — Even when content is JSON, the body field is a string type
+3. **Analysis `body`** — With `encoding: "json"`, the body is the JSON value itself (core-04 §2.3.2). That is the recommended form. A stringified JSON body is still accepted but not recommended
 4. **Party `uuid` field exists** — For cross-vCon party tracking
 5. **Party `did` field exists** — Decentralized Identifier support
 6. **Dialog includes `session_id`, `application`, `message_id`** — Session tracking fields. `session_id` is `{local: UUID, remote: UUID}` or array thereof
-7. **Attachment includes `party` and `dialog`** — Both REQUIRED per draft-02. Use `purpose` (not `type`) for attachment purpose
+7. **Attachment includes `party` and `dialog`** — Both REQUIRED per core-04. Use `purpose` (not `type`) for attachment purpose
 8. **Externally referenced files** — MUST have both `url` and `content_hash`. ContentHash format: `sha512-` + Base64Url of SHA-512 digest
 9. **`critical` extensions** — If a vCon lists extensions in `critical`, implementations that do not support them MUST NOT process the vCon
-10. **`vcon` parameter** — DEPRECATED; use `0.4.0` for syntax. Extension mechanism replaces schema versioning
+10. **`vcon` parameter** — The value MUST be `"0.4.0"`. Extension mechanism replaces schema versioning
 
 ### Tags Convention
 
-Tags are stored as attachments with `purpose: "tags"` (draft-02) or `type: "tags"` (legacy) and a JSON body. Per draft-02, attachments require `party` and `dialog` indices; use 0 for vCon-level tags when no specific party/dialog applies:
+Tags are stored as attachments with `purpose: "tags"` or `type: "tags"` (legacy, read only) and a JSON body. Per core-04, attachments require `party` and `dialog` indices; use 0 for vCon-level tags when no specific party/dialog applies:
 
 ```json
 {
@@ -379,7 +379,7 @@ Tags are stored as attachments with `purpose: "tags"` (draft-02) or `type: "tags
   "start": "2025-01-15T10:30:00Z",
   "party": 0,
   "dialog": 0,
-  "body": "{\"department\": \"sales\", \"priority\": \"high\"}",
+  "body": {"department": "sales", "priority": "high"},
   "encoding": "json"
 }
 ```
@@ -695,7 +695,7 @@ CREATE TABLE attachments (
   id SERIAL PRIMARY KEY,
   vcon_id INTEGER REFERENCES vcons(id) ON DELETE CASCADE,
   attachment_index INTEGER NOT NULL,
-  type TEXT,  -- draft-02 uses purpose; type retained for legacy/ecosystem
+  type TEXT,  -- core-04 uses purpose; type retained for legacy reads only
   start TIMESTAMPTZ,
   party INTEGER, dialog INTEGER,
   mediatype TEXT, filename TEXT,
@@ -759,11 +759,13 @@ v.add_lawful_basis_attachment(
 has_permission = v.check_lawful_basis_permission("quality_assurance", party_index=0)
 ```
 
+The lawful basis draft classifies the extension as compatible: list `lawful_basis` in `extensions`; `critical` is not required. The attachment uses `purpose: "lawful_basis"` and a JSON value body with `encoding: "json"`.
+
 **Lawful bases**: `consent`, `contract`, `legal_obligation`, `vital_interests`, `public_task`, `legitimate_interests`
 
 ### WTF Extension (World Transcription Format)
 
-Standardized transcription format with multi-provider support. Transcripts default to `analysis[]`, not `attachments[]` — prefer `add_wtf_transcription_analysis()` (vcon-lib ≥ 0.9.2) for new code.
+Standardized transcription format with multi-provider support. The extension token and analysis type are both `wtf_transcription`. Transcripts default to `analysis[]`, not `attachments[]` — prefer `add_wtf_transcription_analysis()` (vcon-lib ≥ 0.9.2) for new code.
 
 ```python
 v.add_wtf_transcription_analysis(
@@ -829,6 +831,7 @@ async def run(vcon_uuid: str, link_config: dict) -> str | None:
     # Add analysis result
     vcon["analysis"].append({
         "type": "summary",
+        "dialog": 0,
         "body": result,
         "vendor": "MyCompany",
         "product": options["model"],
@@ -1074,7 +1077,7 @@ When generating code for this ecosystem:
 
 3. **Use the right stack** — Python repos use FastAPI + Poetry + pytest. TypeScript uses ESM + Zod + Vitest. Don't mix conventions.
 
-4. **Tags are attachments** — Tags are stored as `purpose: "tags"` (draft-02) attachments with JSON body. Legacy `type: "tags"` may still appear. Attachments require `party` and `dialog` indices.
+4. **Tags are attachments** — Tags are stored as `purpose: "tags"` attachments with JSON body. Legacy `type: "tags"` may still appear. Attachments require `party` and `dialog` indices.
 
 5. **Handle encoding properly** — Body content uses `base64url`, `json`, or `none` encoding. Audio/video is typically base64url. JSON data uses `json` encoding. Plain text uses `none`.
 

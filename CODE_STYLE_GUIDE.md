@@ -123,7 +123,7 @@ logger.info({ vconUuid: uuid, tool: 'create_vcon' }, 'Creating vCon');
 These are non-negotiable. Violations are spec-breaking:
 
 1. **Analysis**: Use `schema`, not `schema_version`. `vendor` is REQUIRED.
-2. **Analysis body**: Always a string type, even when content is JSON.
+2. **Analysis body**: With `encoding: "json"`, the body is the JSON value itself (recommended). Stringified JSON is still accepted.
 3. **Attachment**: Use `purpose` (not `type` in core). `party` and `dialog` are REQUIRED.
 4. **Tags**: Stored as attachments with `purpose: "tags"`, JSON body. Use `party: 0`, `dialog: 0` for vCon-level tags.
 5. **External references**: MUST have both `url` and `content_hash` (sha512-base64url).

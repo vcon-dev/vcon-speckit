@@ -1,6 +1,6 @@
 # vCon Usage Guide
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-30 (against vcon-lib v0.9.4, vcon-js v0.4.0; lawful_basis draft -02).
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-04`. The `vcon` syntax parameter value is `"0.4.0"`. Last reviewed: 2026-10-06 (against vcon-lib v0.9.4, vcon-js v0.4.0; lawful_basis draft -02).
 
 > Companion to [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md). Where the speckit defines **what** the vCon data model is, this guide defines **how to use it** — for specific domains, feature-by-feature, and per adapter/link.
 
@@ -95,7 +95,7 @@ Use `type: "transfer"` dialogs to link call segments. Transfer dialogs MUST NOT 
       "purpose": "tags",
       "start": "2025-06-01T14:00:00Z",
       "party": 0, "dialog": 0,
-      "body": "{\"department\": \"billing\", \"queue\": \"inbound\", \"outcome\": \"resolved\"}",
+      "body": {"department": "billing", "queue": "inbound", "outcome": "resolved"},
       "encoding": "json"
     }
   ]
@@ -175,7 +175,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
       "purpose": "lawful_basis",
       "start": "2025-06-01T09:00:00Z",
       "party": 1, "dialog": 0,
-      "body": "{\"lawful_basis\": \"consent\", \"expiration\": \"2026-06-01T09:00:00Z\", \"purpose_grants\": [{\"purpose\": \"recording\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}, {\"purpose\": \"transcription\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}, {\"purpose\": \"analysis\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}], \"proof_mechanisms\": [{\"proof_type\": \"signed_document\", \"timestamp\": \"2025-06-01T08:55:00Z\", \"proof_data\": {\"form\": \"hipaa-consent-v3\"}}]}",
+      "body": {"lawful_basis": "consent", "expiration": "2026-06-01T09:00:00Z", "purpose_grants": [{"purpose": "recording", "granted": true, "granted_at": "2025-06-01T08:55:00Z"}, {"purpose": "transcription", "granted": true, "granted_at": "2025-06-01T08:55:00Z"}, {"purpose": "analysis", "granted": true, "granted_at": "2025-06-01T08:55:00Z"}], "proof_mechanisms": [{"proof_type": "signed_document", "timestamp": "2025-06-01T08:55:00Z", "proof_data": {"form": "hipaa-consent-v3"}}]},
       "encoding": "json"
     }
   ]
@@ -221,7 +221,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
   ],
   "analysis": [
     { "type": "transcript", "dialog": 0, "vendor": "Deepgram",  "product": "nova-2",                  "body": "...", "encoding": "none" },
-    { "type": "sentiment",  "dialog": 0, "vendor": "Anthropic", "product": "claude-haiku-4-5-20251001", "body": "{\"overall\": \"positive\", \"score\": 0.82}", "encoding": "json" },
+    { "type": "sentiment",  "dialog": 0, "vendor": "Anthropic", "product": "claude-haiku-4-5-20251001", "body": {"overall": "positive", "score": 0.82}, "encoding": "json" },
     { "type": "summary",    "dialog": 0, "vendor": "Anthropic", "product": "claude-sonnet-4-20250514",  "body": "Prospect interested in enterprise plan. Follow up with pricing.", "encoding": "none" }
   ],
   "attachments": [
@@ -229,7 +229,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
       "purpose": "tags",
       "start": "2025-06-01T16:00:00Z",
       "party": 0, "dialog": 0,
-      "body": "{\"campaign\": \"q2-outbound\", \"stage\": \"discovery\", \"outcome\": \"follow-up\", \"crm_id\": \"opp-1234\"}",
+      "body": {"campaign": "q2-outbound", "stage": "discovery", "outcome": "follow-up", "crm_id": "opp-1234"},
       "encoding": "json"
     }
   ]
@@ -301,7 +301,7 @@ Each message exchange can be a separate text dialog entry, or the full transcrip
       "purpose": "tags",
       "start": "2025-06-01T10:00:00Z",
       "party": 0, "dialog": 0,
-      "body": "{\"ticket_id\": \"98765\", \"channel\": \"chat\", \"priority\": \"high\", \"resolution\": \"escalated\"}",
+      "body": {"ticket_id": "98765", "channel": "chat", "priority": "high", "resolution": "escalated"},
       "encoding": "json"
     }
   ]
@@ -321,7 +321,7 @@ Each message exchange can be a separate text dialog entry, or the full transcrip
 | Digital signature | vCon MUST be signed (JWS, via vcon-lib) to establish authenticity |
 | Lawful basis extension | `"legal_obligation"` basis with proof mechanism |
 | `extensions: ["lawful_basis"]` | List in extensions |
-| `critical: ["lawful_basis"]` | Mark critical — implementations not supporting it MUST NOT process |
+| `critical: ["lawful_basis"]` | Optional. The lawful basis draft classifies the extension as compatible and does not require it. List it only if your deployment must refuse processing by implementations that ignore consent |
 | `content_hash` on all media | Every dialog with external media must have sha512-base64url hash |
 | SCITT lifecycle | Reference `draft-howe-vcon-lifecycle` for chain-of-custody registration |
 
@@ -392,7 +392,7 @@ Never add `summary` or `sentiment` before `transcript` exists, unless the dialog
   "type":    "summary",          // REQUIRED
   "vendor":  "Anthropic",        // REQUIRED — never omit
   "product": "claude-sonnet-4-20250514",   // strongly recommended
-  "body":    "...",              // REQUIRED — always a string, even for JSON content
+  "body":    "...",              // REQUIRED — a string, or the JSON value itself when encoding is "json"
   "encoding": "none"             // REQUIRED — "none", "json", or "base64url"
 }
 ```
@@ -424,13 +424,13 @@ This is the most commonly confused distinction:
 | Machine-generated content derived from dialog | Legal documents (lawful basis, consent forms) |
 | Outputs that have a `vendor` (who produced it) | Supporting files (PDFs, images, fax pages) |
 | Searchable, structured results | Tenant/routing metadata |
-| WTF transcription results via analysis type | WTF transcription format via attachment (both patterns valid) |
+| WTF transcription results (`type: "wtf_transcription"`) | Metadata and documents only |
 
 **Key rule**: If it was *produced by a model or algorithm* → `analysis`. If it is *associated metadata or a document* → `attachments`.
 
 #### Attachment `purpose` field
 
-Always use `purpose` (not `type`) for the attachment's semantic role. Legacy code may use `type`; treat as equivalent for read compatibility but write `purpose` for new code.
+Always use `purpose` (not `type`) for the attachment's semantic role. Legacy code may use `type`; readers may accept it, but writers MUST use `purpose`, including for `lawful_basis`.
 
 Common purpose values:
 
@@ -438,7 +438,6 @@ Common purpose values:
 |---------|---------|
 | `"tags"` | Key-value metadata for routing, filtering, CRM linkage |
 | `"lawful_basis"` | GDPR lawful basis record |
-| `"wtf_transcription"` | World Transcription Format transcript |
 | `"document"` | Supporting document (PDF, image) |
 | `"tenant"` | Multi-tenancy routing metadata |
 
@@ -515,7 +514,7 @@ Any field not in the core spec MUST be listed in `extensions`. If you add `role`
 
 ```json
 {
-  "extensions": ["lawful_basis", "role", "wtf"],
+  "extensions": ["lawful_basis", "role", "wtf_transcription"],
   "parties": [{ "tel": "...", "role": "agent" }]
 }
 ```
@@ -524,7 +523,7 @@ Any field not in the core spec MUST be listed in `extensions`. If you add `role`
 
 Add an extension to `critical` when implementations that do not support it MUST NOT process or act on the vCon. Examples:
 
-- `"lawful_basis"` in regulated industries — a system that ignores consent must not process
+- `"lawful_basis"` where policy requires that a system ignoring consent must not process. The lawful basis draft itself classifies the extension as compatible and does not require `critical`
 - A proprietary encryption extension — a system that can't decrypt must not forward
 
 ```json
@@ -545,7 +544,7 @@ These schemas define what vCons look like **as produced** by each adapter or pro
 - Know what fields downstream links can expect
 - Write tests that match real-world structure
 
-> **Note on field names**: Some adapters use legacy field names (`mimetype` instead of `mediatype`, `type` instead of `purpose` for attachments). Where noted, the spec-compliant form is preferred for new development.
+> **Note on field names**: Some adapters use legacy field names (`mimetype` instead of `mediatype`, `type` instead of `purpose` for attachments). Readers may tolerate these; writers must not emit them. Where noted, the spec-compliant form is preferred for new development.
 
 ---
 
@@ -765,14 +764,14 @@ Appends a `transcript` analysis to the vCon.
 | `body` | Plain text transcript or JSON (provider-specific) |
 | `encoding` | `"none"` or `"json"` |
 
-When using WTF (World Transcription Format), the normalized transcript is also stored as an attachment:
+When using WTF (World Transcription Format), the transcript is an analysis object with type `wtf_transcription`:
 
 ```json
 {
-  "purpose": "wtf_transcription",
-  "start": "2025-06-01T14:00:00Z",
-  "party": 0, "dialog": 0,
-  "body": "{\"segments\": [{\"start\": 0.0, \"end\": 2.5, \"text\": \"Hello\", \"speaker\": \"Speaker_0\", \"confidence\": 0.95}], ...}",
+  "type": "wtf_transcription",
+  "dialog": 0,
+  "vendor": "Example",
+  "body": {"segments": [{"start": 0.0, "end": 2.5, "text": "Hello", "speaker": "Speaker_0", "confidence": 0.95}]},
   "encoding": "json"
 }
 ```
@@ -796,4 +795,4 @@ Appends structured metadata as a `tags` attachment.
 }
 ```
 
-For vCon-level tags (not tied to a specific party/dialog), use index `0` for both `party` and `dialog`. This is the spec-compliant approach per draft-02, which requires both fields even when the attachment applies to the whole vCon.
+For vCon-level tags (not tied to a specific party/dialog), use index `0` for both `party` and `dialog`. This is the spec-compliant approach per core-04, which requires both fields even when the attachment applies to the whole vCon.
