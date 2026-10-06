@@ -6,6 +6,15 @@ Commit hashes reference this repository.
 
 ---
 
+## 2026-10-06
+
+- Aligned the kit with `draft-ietf-vcon-vcon-core-04` (banners, notes, field tables). The `vcon` parameter is no longer described as deprecated; its value MUST be `"0.4.0"`.
+- Replaced "analysis body is always a string" with core-04 section 2.3.2: with `encoding: "json"` the body is the JSON value itself (recommended); stringified JSON is still accepted. Examples converted.
+- Lawful basis attachments use `purpose: "lawful_basis"` (no `type` exception). The lawful basis and WTF drafts classify their extensions as compatible, so `critical` is optional for them, not required.
+- WTF transcripts are analysis objects with `type: "wtf_transcription"`; the extension token is `wtf_transcription` (not `wtf`). Removed the attachment placement from the usage guide.
+
+---
+
 ## 2026-06-04
 
 - **vcon-lib v0.9.5** — external-media `content_hash` compliance fix. `Dialog` now computes and emits `content_hash` in the spec form `sha512-<base64url>` with no padding, per [draft-ietf-vcon-vcon-core-02](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core) and matching the canonical `vcon-info` examples (`docs/examples/*.vcon`, all `sha512-...`). Before v0.9.5 the Dialog helpers (`add_external_data`, `add_inline_data`, `add_image_data`, `to_inline_data`) emitted an **unprefixed, padded base64url SHA-256** digest, which strict parsers reject. This closes the Python/TypeScript divergence noted in the [2026-05-28](#2026-05-28) entry, where `vcon-js` v0.4.0 already validated `content_hash` as `sha512-<base64url>` but `vcon-lib` still emitted bare SHA-256.

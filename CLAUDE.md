@@ -20,10 +20,11 @@ This repo is a documentation-only spec kit. It exists to be loaded as context wh
 These are the most common spec-compliance mistakes. Full list: [speckit §Critical Spec Compliance Rules](vcon-ecosystem-speckit.md#critical-spec-compliance-rules).
 
 - **Analysis:** field is `schema`, **never** `schema_version`. `vendor` is REQUIRED on every analysis object.
-- **Analysis body:** always a string type, even when the content is JSON (pair with `encoding: "json"`).
-- **Attachment:** field is `purpose`, **not** `type` (in core). `party` and `dialog` indices are REQUIRED. Use `party: 0, dialog: 0` for vCon-level attachments.
+- **Analysis and attachment body:** with `encoding: "json"` the body is the JSON value itself (core-04 §2.3.2). Recommended. A stringified JSON body is still accepted.
+- **Attachment:** field is `purpose`, **not** `type`, including `purpose: "lawful_basis"`. Readers may tolerate legacy `type`; writers MUST emit `purpose`. `party` and `dialog` indices are REQUIRED. Use `party: 0, dialog: 0` for vCon-level attachments.
 - **External references:** MUST have both `url` and `content_hash` (format: `sha512-` + Base64Url of SHA-512 digest).
 - **Timestamps:** ISO 8601 with timezone (`Z` suffix or explicit offset).
+- **Extensions:** `lawful_basis` and `wtf_transcription` are compatible extensions. List them in `extensions`; `critical` is not required. WTF transcripts are analysis objects with `type: "wtf_transcription"`.
 - **`redacted`** and **`amended`** are mutually exclusive. `group` is reserved — do not use.
 
 ## Legacy field names (historical)
@@ -32,9 +33,9 @@ The canonical libraries (`vcon-lib` v0.9.1+, `vcon-js` v0.3.0+, `vcon-mcp` curre
 
 ## Spec target
 
-IETF `draft-ietf-vcon-vcon-core-02` ([authoritative repo](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core)).
+IETF `draft-ietf-vcon-vcon-core-04` ([authoritative repo](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core)).
 
-The `vcon` syntax parameter value is `"0.4.0"` — this is a syntax parameter, not the draft identifier, and it is deprecated in draft-02 but retained for parser compatibility. When in doubt, refer to the banner at the top of the speckit and usage guide.
+The `vcon` syntax parameter value is `"0.4.0"` — this is a syntax parameter, not the draft identifier. When in doubt, refer to the banner at the top of the speckit and usage guide.
 
 ## How this kit is meant to be consumed
 

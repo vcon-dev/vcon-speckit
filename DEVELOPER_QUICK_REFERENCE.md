@@ -8,7 +8,7 @@ One-page cheat sheet for common patterns. For full details, see [vcon-ecosystem-
 |------|---------|-------|
 | Analysis schema | `schema` | `schema_version` |
 | Analysis vendor | Required | Omitted |
-| Analysis body | String (even for JSON) | Object |
+| Analysis body | JSON value with `encoding: "json"` (recommended); string otherwise | Unmarked object, no `encoding` |
 | Attachment purpose | `purpose` | `type` (in core) |
 | Attachment indices | `party`, `dialog` required | Omitted |
 | Tags | see [speckit §Tags Convention](vcon-ecosystem-speckit.md#tags-convention) / [GLOSSARY: tags](GLOSSARY.md#core-data-model) | Top-level tags object |
@@ -38,12 +38,12 @@ vcon["analysis"].append({
     "vendor": "MyVendor",      # REQUIRED
     "product": "gpt-4",
     "schema": "v1",
-    "body": json.dumps(result),
+    "body": result,   # JSON value; encoding "json"
     "encoding": "json"
 })
 ```
 
-## Add Tags (draft-02)
+## Add Tags (core-04)
 
 ```python
 vcon["attachments"].append({
@@ -51,7 +51,7 @@ vcon["attachments"].append({
     "start": "2025-01-15T10:30:00Z",
     "party": 0,
     "dialog": 0,
-    "body": json.dumps({"department": "sales"}),
+    "body": {"department": "sales"},
     "encoding": "json"
 })
 ```
