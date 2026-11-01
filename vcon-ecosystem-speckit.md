@@ -1,6 +1,6 @@
 # vCon Ecosystem — Spec Kit for Code Generation & Maintenance
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-06-08 (against vcon-lib v0.9.5, vcon-js v0.4.0; lawful_basis draft -02). Repository map now includes the full vcon-dev org plus the proprietary VCONIC org.
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-05`. The `vcon` syntax parameter is `"0.5.0"` (deprecated as of RFC publication; retained for parser compatibility). Vendored schema and CDDL: [schema/](schema/). Core-05 rules were taken from the core-04 to core-05 change analysis; the narrative below was last fully re-verified against core-02 and is being brought forward. Where this kit and the schema disagree, the schema and the draft text win.
 
 > Use this document as context when generating, reviewing, or maintaining code across the vCon ecosystem. It captures architecture, conventions, data models, integration points, and standards compliance requirements.
 
@@ -232,29 +232,74 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
 
 ```json
 {
-  "vcon": "0.4.0",
+  "vcon": "0.5.0",
   "uuid": "string (UUID)",
   "created_at": "ISO 8601 datetime (REQUIRED)",
   "updated_at": "ISO 8601 datetime (optional)",
   "subject": "string (optional)",
-  "extensions": ["string (extension names)"],
-  "critical": ["string (incompatible extension names)"],
-  "redacted": { "uuid": "string", "type": "string", "url": "string", "content_hash": "string (sha512-base64url)" },
-  "amended": { "uuid": "string", "url": "string", "content_hash": "string" },
+  "extensions": ["string (extension names; MUST be present if any extension is used)"],
+  "critical": ["string (incompatible extension names; MUST be present if any incompatible extension is used)"],
+  "redacted_from": { "uuid": "string", "type": "string", "url": "string", "content_hash": "string (sha512-base64url)" },
+  "amended_from": { "uuid": "string", "url": "string", "content_hash": "string" },
+  "redacted_strings": [],
+  "sessions": [],
   "parties": [],
+  "events": [],
   "dialog": [],
   "analysis": [],
   "attachments": []
 }
 ```
 
-**Notes (draft-02)**:
-- `vcon` is DEPRECATED as of RFC publication; extension mechanism replaces schema versioning. For syntax in this document, use `"0.4.0"`.
-- `extensions`: List of extension names used. SHOULD list all extensions for parameters not in core schema.
-- `critical`: List of incompatible extension names. Implementations that do not support listed extensions MUST NOT process the vCon.
-- `redacted` and `amended` are mutually exclusive with each other (and with `group`, which is reserved for future extension — do not use). `redacted` references a prior (less redacted) vCon; `amended` references a prior vCon that this version extends.
+**Notes (core-05)**:
+- `uuid` and `created_at` are the only top-level parameters the JSON Schema requires. `vcon` is optional there, with the constant `"0.5.0"`. It is DEPRECATED as of RFC publication; write it as `"0.5.0"` for now. Never write `"0.4.0"` in new output.
+- `extensions`: MUST list every extension that defines any parameter, Object or parameter value not in the core schema (core-04 said SHOULD). Every name in `critical` MUST also be in `extensions`.
+- `critical`: incompatible extensions. An implementation that does not recognize or support a listed extension MUST NOT process the vCon except to reject it or report unsupported content.
+- `redacted_from` (renamed from `redacted`) and `amended_from` (renamed from `amended`) are mutually exclusive; the JSON Schema rejects a vCon that has both. `group` is reserved; do not use. `redacted_from` references a prior, less redacted vCon; `amended_from` references the prior vCon instance version (original, redacted, or previously amended) to which the amendments were applied. A new vCon instance version MUST be created for an amendment. If `redacted_from` has a `url`, `content_hash` MUST be included and access to the URL MUST be restricted.
+- `sessions`: at least one Session Object MUST exist if `dialog` or `events` contains Objects (the JSON Schema enforces this with a non-empty `sessions` check).
+- `redacted_strings`: new. Substitutes `__REDACTED_REF_<n>` in text for each redacted substring; an entry is required for every unique substring redacted, with no more than 99999 per vCon.
 
-**vCon forms**: Unsigned (top-level object), signed (JWS General JSON Serialization with payload, signatures), encrypted (JWE with signed vCon as plaintext). Externally referenced files MUST use HTTPS and include `content_hash`. Inline files MUST have `body` and `encoding` (`base64url`, `json`, or `none`).
+**vCon forms**: Unsigned (top-level object), signed (JWS General JSON Serialization with payload, signatures), encrypted (JWE with signed vCon as plaintext). Core-05 adds `sessions` and `events` to the members that identify the unsigned form. The JWS `alg` parameter MUST NOT be `"none"`; it MUST be present in either the JWS Protected Header or the Header Object (SHOULD be the protected header), and a header parameter MUST NOT appear in both. The JWS Header Object MUST include at least one of `x5c` or `x5u`. The JWE `alg` and `enc` MUST each appear in exactly one permitted header location. Externally referenced files MUST use HTTPS and include `content_hash`. Inline files MUST have `body` and `encoding` (`base64url`, `json`, `none`, or a value defined in an extension).
+
+The JSON Schema in [schema/](schema/) validates the unsigned form only. Validate a signed vCon through its decoded payload.
+
+### Session Object
+
+A Session scopes dialog and events and can group them into sub-conversations. A simple conversation has one Session referencing all of its Dialogs.
+
+```json
+{
+  "start": "ISO 8601 datetime (SHOULD be present)",
+  "duration": "number (seconds; absent means the session has no end)",
+  "parties": "UnsignedInt[] (the RECEIVERS; SHOULD be present)",
+  "originator": "number (party index; only when the first party in parties is NOT the originator)",
+  "session_id": "SessionId ({local, remote})",
+  "sessions": "Session_Reference[] ({session, type, description?})",
+  "dialog": "UnsignedInt[] (indices into dialog)"
+}
+```
+
+A Session Object with no parameters is permitted. All Dialog Objects SHOULD be referenced by at least one Session.
+
+### Event Object
+
+An event is a point in time. A period such as being on hold is a pair of events, not a duration. Event Objects may appear in any order; `time` gives the sequence.
+
+```json
+{
+  "type": "join | drop | hold | unhold | mute | unmute | keydown | keyup | consultation-start | blind-transfer | consultative-transfer | transfer-abandoned | channel-contributors | (extension value)",
+  "time": "ISO 8601 datetime (REQUIRED)",
+  "sessions": "UnsignedInt | UnsignedInt[] (sessions the event applies to)",
+  "party": "number (party index; the Transferor for transfer types)",
+  "dialog": "number (SHOULD NOT be present for party and key events; required for channel-contributors)",
+  "button": "string (keydown/keyup)",
+  "channel": "number", "contributors": "UnsignedInt[]",
+  "transferee": "number", "transfer_target": "number | number[]",
+  "consultation": "number | number[]", "target_session": "number"
+}
+```
+
+`sessions`, `party`, and `dialog` rules vary by event type; see the parameter-applicability table in section 4.3.1.5 of the draft and the Event definition in [schema/vcon_json_schema.json](schema/vcon_json_schema.json). Events replace Dialog `party_history` and the `transfer` Dialog type.
 
 ### Party Object
 
@@ -280,98 +325,102 @@ All repositories MUST conform to this data model. When in doubt, defer to the IE
 
 **Core party fields** (first 10 above) are defined in the authoritative spec. The last four (`jcard`, `timezone`, `role`, `meta`) are extension fields — they MUST be listed in the top-level `extensions` array when used.
 
-**UUID (draft-02)**: SHOULD use version 8 UUID (timestamp-based with FQHN hash for uniqueness).
+**UUID (core-05)**: SHOULD use version 8 UUID (timestamp-based with FQHN hash for uniqueness).
 
 ### Dialog Object
 
 ```json
 {
-  "type": "recording | text | transfer | incomplete",
+  "type": "recording | text | incomplete | (extension value). Required unless the Dialog is empty ({})",
   "start": "ISO 8601 datetime",
   "duration": "number (seconds)",
-  "parties": "UnsignedInt | UnsignedInt[] | (UnsignedInt | UnsignedInt[])[]",
-  "originator": "number (party index, optional)",
+  "parties": "UnsignedInt | UnsignedInt[] | (UnsignedInt | UnsignedInt[])[] (CONTRIBUTORS only)",
   "mediatype": "string (MIME type)",
   "filename": "string",
-  "body": "string (inline or base64url)",
-  "encoding": "base64url | json | none",
+  "body": "string, or any JSON value when encoding is json",
+  "encoding": "base64url | json | none | (extension value)",
   "url": "string (external reference)",
   "content_hash": "ContentHash | ContentHash[] (sha512-base64url)",
   "disposition": "string (REQUIRED for incomplete)",
   "session_id": "SessionId | SessionId[] ({local: UUID, remote: UUID})",
   "application": "string",
   "message_id": "string",
-  "party_history": "array of {party, event, time, button?}",
-  "transferee": "number (transfer type only)",
-  "transferor": "number (transfer type only)",
-  "transfer_target": "number | number[] (transfer type only)",
-  "original": "number | number[] (transfer type only)",
-  "consultation": "number | number[] (transfer type only)",
-  "target_dialog": "number | number[] (transfer type only)"
+  "redacted_segments": "array of {start, end, parties?} (SHOULD be present in a redacted vCon)"
 }
 ```
 
-**Dialog types**: `recording`, `text`, `transfer`, `incomplete`
-**Party history events**: `join`, `drop`, `hold`, `unhold`, `mute`, `unmute`, `keydown`, `keyup` (keydown/keyup require `button` parameter)
-**Incomplete dispositions**: `no-answer`, `congestion`, `failed`, `busy`, `hung-up`, `voicemail-no-message`
-**Transfer type**: Uses transferee, transferor, transfer_target, original, consultation, target_dialog to link dialog segments. MUST NOT have parties, originator, mediatype, filename, or Dialog Content.
+**Dialog types**: `recording`, `text`, `incomplete`. The `transfer` and `recording-set` types, and the `originator`, `party_history`, `recordings`, `recording_set`, `transferee`, `transferor`, `transfer_target`, `original`, `consultation` and `target_dialog` parameters, are gone in core-05. Transfers are Event Objects, recording sets are Session Objects, joins/drops/holds/mutes/keys are Event Objects, and `originator` lives on the Session.
+**Contributors and receivers**: Dialog `parties` lists only the contributors. The receivers are in the Session Object `parties`. A text message's Dialog `parties` is the sender only; the Session `parties` includes the sender and all recipients.
+**Empty Dialog**: `{}` is allowed and has no meaning. Use it to hold a position so other dialog indices stay valid, for example when a Dialog is removed during redaction.
+**Incomplete dispositions**: `no-answer`, `congestion`, `failed`, `busy`, `hung-up`, `voicemail-no-message`, or an extension value.
 
 ### Analysis Object
 
 ```json
 {
   "type": "string (report, sentiment, summary, transcript, translation, tts, etc.)",
-  "dialog": "number or array (dialog indices, optional if not derived from dialog)",
+  "dialog": "number or array (dialog indices, optional)",
+  "sessions": "number or array (session indices, optional)",
+  "attachment": "number or array (optional)",
+  "analysis": "number or array (optional; MUST NOT reference itself)",
   "mediatype": "string (MIME type)",
+  "filename": "string",
   "vendor": "string (REQUIRED - who produced this)",
   "product": "string (model name/version)",
-  "schema": "string (schema identifier — NOT schema_version)",
-  "body": "string (content — supports JSON, CSV, XML, plain text)",
-  "encoding": "base64url | json | none",
+  "schema": "string (schema identifier - NOT schema_version)",
+  "body": "string, or any JSON value when encoding is json",
+  "encoding": "base64url | json | none | (extension value)",
   "url": "string (external reference)",
   "content_hash": "ContentHash | ContentHash[]"
 }
 ```
 
-**Analysis types (draft-02)**: `report`, `sentiment`, `summary`, `transcript`, `translation`, `tts`
+**Analysis types (core-05)**: `report`, `sentiment`, `summary`, `transcript`, `translation`, `tts`. At least one of `dialog`, `sessions`, `attachment` or `analysis` SHOULD be present to show the input scope, unless the analysis used data outside the vCon. `vendor` is provided even when `mediatype` fully identifies the format. If the Analysis contains or references content, enough information to interpret its format SHOULD be provided (`mediatype`, or `schema` with `vendor` and `product`).
 
 ### Attachment Object
 
 ```json
 {
-  "purpose": "string (e.g. 'tags', 'lawful_basis', 'wtf_transcription')",
-  "start": "ISO 8601 datetime",
+  "purpose": "string (free text, e.g. 'tags', 'lawful_basis', 'wtf_transcription')",
+  "start": "ISO 8601 datetime (REQUIRED)",
   "party": "number (party index, REQUIRED)",
-  "dialog": "number (dialog index, REQUIRED)",
-  "mediatype": "string (MIME type)",
+  "dialog": "number (dialog index)",
+  "session": "number | number[] (session indices)",
+  "mediatype": "string (MIME type; MUST be provided for inline files)",
   "filename": "string",
-  "body": "string",
-  "encoding": "base64url | json | none",
+  "body": "string, or any JSON value when encoding is json",
+  "encoding": "base64url | json | none | (extension value)",
   "url": "string",
   "content_hash": "ContentHash | ContentHash[]"
 }
 ```
 
-**Note (draft-02)**: The core spec uses `purpose` (not `type`). Extensions may use `type` for compatibility; tags convention uses `purpose: "tags"`.
+**Note (core-05)**: `party` is REQUIRED (provenance: the party that contributed or distributed the attachment, which need not be a conversation participant; the entity that adds the attachment SHOULD be represented as a Party Object). `dialog` is no longer required on its own: at least one of `dialog` or `session` MUST be present (the JSON Schema enforces this). The core spec uses `purpose` (not `type`); `purpose` has no restricted value set.
 
 ### Critical Spec Compliance Rules
 
 These corrections apply across ALL repositories. Violations are spec-breaking bugs:
 
-1. **Analysis `schema` field** — Use `schema`, NOT `schema_version`
-2. **Analysis `vendor` is REQUIRED** — Every analysis MUST include a vendor string
-3. **Analysis `body` is a string** — Even when content is JSON, the body field is a string type
-4. **Party `uuid` field exists** — For cross-vCon party tracking
-5. **Party `did` field exists** — Decentralized Identifier support
-6. **Dialog includes `session_id`, `application`, `message_id`** — Session tracking fields. `session_id` is `{local: UUID, remote: UUID}` or array thereof
-7. **Attachment includes `party` and `dialog`** — Both REQUIRED per draft-02. Use `purpose` (not `type`) for attachment purpose
-8. **Externally referenced files** — MUST have both `url` and `content_hash`. ContentHash format: `sha512-` + Base64Url of SHA-512 digest
-9. **`critical` extensions** — If a vCon lists extensions in `critical`, implementations that do not support them MUST NOT process the vCon
-10. **`vcon` parameter** — DEPRECATED; use `0.4.0` for syntax. Extension mechanism replaces schema versioning
+1. **Analysis `schema` field** - Use `schema`, NOT `schema_version`
+2. **Analysis `vendor` is REQUIRED** - Every analysis MUST include a vendor string
+3. **Inline `body` with `encoding: "json"`** - `body` is any JSON value; for `base64url` and `none` it is a string. Do not double-encode with `json.dumps()` when you can write the value directly
+4. **Party `uuid` and `did` fields exist** - For cross-vCon party tracking and decentralized identifiers
+5. **Dialog includes `session_id`, `application`, `message_id`** - `session_id` is `{local: UUID, remote: UUID}` or an array thereof
+6. **Sessions** - If `dialog` or `events` has any Objects, `sessions` MUST have at least one Session. Dialog `parties` are contributors only; receivers go in the Session `parties`. Do not write `originator` on a Dialog
+7. **Events replace `party_history` and `transfer` dialogs** - Write join/drop/hold/mute/key and transfer activity as Event Objects (`type`, `time`, `sessions`, `party`). Do not write the removed Dialog parameters or types
+8. **`redacted_from` and `amended_from`** - Use these names; `redacted` and `amended` are the core-04 names. They are mutually exclusive. `redacted_from.url` requires `content_hash`
+9. **Attachment needs `party` and a scope** - `party` is REQUIRED, and at least one of `dialog` or `session` MUST be present. Use `purpose` (not `type`)
+10. **JWS `alg` MUST NOT be `"none"`** - Re-sign any vCon that used it with a permitted algorithm (SHOULD be `RS256`)
+11. **`extensions` MUST list every extension used** - Any parameter, Object or parameter value not in core needs its extension name listed; every `critical` entry MUST also be in `extensions`
+12. **`critical` extensions** - An implementation that does not support a listed extension MUST NOT process the vCon except to reject it or report unsupported content
+13. **Externally referenced files** - MUST have both `url` and `content_hash`. ContentHash format: `sha512-` + Base64Url of SHA-512 digest
+14. **`vcon` parameter** - DEPRECATED; write `"0.5.0"`, never `"0.4.0"`. The extension mechanism replaces schema versioning
+15. **Removing an array element during redaction** - Leave an empty placeholder so indices hold; if an element is removed entirely, every index into that array MUST be revised
+16. **Unknown values** - An unrecognized Dialog, Event or Session_Reference type, or encoding, SHOULD cause that Object to be ignored while the rest of the vCon is processed; the ignored Object stays in its array so indices do not shift (unless its extension is in `critical`)
 
 ### Tags Convention
 
-Tags are stored as attachments with `purpose: "tags"` (draft-02) or `type: "tags"` (legacy) and a JSON body. Per draft-02, attachments require `party` and `dialog` indices; use 0 for vCon-level tags when no specific party/dialog applies:
+Tags are stored as attachments with `purpose: "tags"` (or `type: "tags"` in legacy output) and a JSON body. Attachments require `party` and at least one of `dialog` or `session`; for vCon-level tags use `party: 0` and `dialog: 0` (or a `session` index) when no specific party or dialog applies:
 
 ```json
 {
@@ -379,7 +428,8 @@ Tags are stored as attachments with `purpose: "tags"` (draft-02) or `type: "tags
   "start": "2025-01-15T10:30:00Z",
   "party": 0,
   "dialog": 0,
-  "body": "{\"department\": \"sales\", \"priority\": \"high\"}",
+  "mediatype": "application/json",
+  "body": {"department": "sales", "priority": "high"},
   "encoding": "json"
 }
 ```
@@ -569,7 +619,7 @@ Source (files, SIP, screen capture) → Parse/Convert → Build vCon → POST to
 | Environment vars | UPPER_SNAKE_CASE | `REDIS_URL`, `SUPABASE_URL` |
 | Config keys | snake_case | `ingress_lists`, `api_key` |
 | Docker services | lowercase hyphenated | `conserver`, `redis-stack` |
-| IETF fields | snake_case | `created_at`, `content_hash`, `party_history` |
+| IETF fields | snake_case | `created_at`, `content_hash`, `redacted_from` |
 
 ### UUID Convention
 
@@ -648,7 +698,7 @@ CREATE TABLE vcons (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   extensions JSONB,
   critical JSONB,      -- spec field; legacy `must_support` column still exists, deprecated, exposed via `vcons_legacy` view
-  redacted JSONB,
+  redacted JSONB,      -- storage column as shipped by vcon-mcp; core-05 field name is redacted_from
   amended JSONB,       -- spec field; legacy `appended` column still exists, deprecated, exposed via `vcons_legacy` view
   tenant_id TEXT
 );
@@ -695,7 +745,7 @@ CREATE TABLE attachments (
   id SERIAL PRIMARY KEY,
   vcon_id INTEGER REFERENCES vcons(id) ON DELETE CASCADE,
   attachment_index INTEGER NOT NULL,
-  type TEXT,  -- draft-02 uses purpose; type retained for legacy/ecosystem
+  type TEXT,  -- core uses purpose; type retained for legacy/ecosystem
   start TIMESTAMPTZ,
   party INTEGER, dialog INTEGER,
   mediatype TEXT, filename TEXT,
@@ -1074,7 +1124,7 @@ When generating code for this ecosystem:
 
 3. **Use the right stack** — Python repos use FastAPI + Poetry + pytest. TypeScript uses ESM + Zod + Vitest. Don't mix conventions.
 
-4. **Tags are attachments** — Tags are stored as `purpose: "tags"` (draft-02) attachments with JSON body. Legacy `type: "tags"` may still appear. Attachments require `party` and `dialog` indices.
+4. **Tags are attachments** — Tags are stored as `purpose: "tags"` attachments with a JSON body. Legacy `type: "tags"` may still appear. Attachments require `party` and at least one of `dialog` or `session` (core-05).
 
 5. **Handle encoding properly** — Body content uses `base64url`, `json`, or `none` encoding. Audio/video is typically base64url. JSON data uses `json` encoding. Plain text uses `none`.
 

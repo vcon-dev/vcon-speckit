@@ -6,6 +6,15 @@ Commit hashes reference this repository.
 
 ---
 
+## 2026-11-01
+
+- Retargeted the kit from `draft-ietf-vcon-vcon-core-02` (syntax `"0.4.0"`) to `draft-ietf-vcon-vcon-core-05` (syntax `"0.5.0"`).
+- Vendored the core-05 Appendix C JSON Schema and Appendix D CDDL, verbatim, under [schema/](schema/).
+- New compliance rules in [CLAUDE.md](CLAUDE.md) and the speckit: `sessions` required when `dialog` or `events` has Objects; Events replace `party_history` and the `transfer` Dialog; `originator` moves to the Session and Dialog `parties` are contributors only; `redacted` and `amended` renamed `redacted_from` and `amended_from`; JWS `alg` MUST NOT be `"none"`; `extensions` MUST list every extension used; Attachment needs `party` plus `dialog` or `session`.
+- Dialog types are now `recording`, `text`, `incomplete`; the `recording-set` and `transfer` types are removed.
+- Added Session and Event Object sections to the speckit data model and updated the usage-guide examples.
+- Not changed: the repository map, the storage schemas and the library-status notes still describe vcon-lib, vcon-js and vcon-mcp as last reviewed. Those libraries have not been ported to core-05 and still write core-04 structure.
+
 ## 2026-06-04
 
 - **vcon-lib v0.9.5** — external-media `content_hash` compliance fix. `Dialog` now computes and emits `content_hash` in the spec form `sha512-<base64url>` with no padding, per [draft-ietf-vcon-vcon-core-02](https://github.com/ietf-wg-vcon/draft-ietf-vcon-vcon-core) and matching the canonical `vcon-info` examples (`docs/examples/*.vcon`, all `sha512-...`). Before v0.9.5 the Dialog helpers (`add_external_data`, `add_inline_data`, `add_image_data`, `to_inline_data`) emitted an **unprefixed, padded base64url SHA-256** digest, which strict parsers reject. This closes the Python/TypeScript divergence noted in the [2026-05-28](#2026-05-28) entry, where `vcon-js` v0.4.0 already validated `content_hash` as `sha512-<base64url>` but `vcon-lib` still emitted bare SHA-256.

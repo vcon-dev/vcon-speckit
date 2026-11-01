@@ -38,12 +38,12 @@ vcon["analysis"].append({
     "vendor": "MyVendor",      # REQUIRED
     "product": "gpt-4",
     "schema": "v1",
-    "body": json.dumps(result),
+    "body": result,            # core-05: any JSON value when encoding is "json"
     "encoding": "json"
 })
 ```
 
-## Add Tags (draft-02)
+## Add Tags (core-05)
 
 ```python
 vcon["attachments"].append({
@@ -51,7 +51,8 @@ vcon["attachments"].append({
     "start": "2025-01-15T10:30:00Z",
     "party": 0,
     "dialog": 0,
-    "body": json.dumps({"department": "sales"}),
+    "mediatype": "application/json",
+    "body": {"department": "sales"},
     "encoding": "json"
 })
 ```
@@ -102,7 +103,8 @@ OTEL_ENABLED, LOG_LEVEL
 |----------|--------|
 | Dialog type for audio/video | `"recording"` |
 | Dialog type for chat/email/SMS | `"text"` |
-| Dialog type to link call transfer | `"transfer"` (no body/parties) |
+| Record a call transfer | Event Object (`blind-transfer`, `consultative-transfer`), not a Dialog |
+| Sessions | `sessions` MUST have at least one Session whenever `dialog` or `events` has Objects |
 | Analysis vs. attachment | AI output → analysis; metadata/docs → attachments |
 | Analysis order | transcript → summary → sentiment |
 | Party UUID | Cross-vCon tracking (CRM ID, patient ID) |
