@@ -6,6 +6,16 @@ Commit hashes reference this repository.
 
 ---
 
+## 2026-11-18
+
+- Brought the vcon-lib examples up to **vcon-lib 1.0.3** (the first release on core-05) and checked them by running them against it:
+  - [§3.3](vcon-ecosystem-speckit.md#33-vcon-lib-python-library) quick start: adds a Session, gives the text Dialog its `mediatype` and only its sender in `parties`, and imports `Dialog`/`Session` from the package root. The old snippet produced a vCon that 1.0.3's `is_valid()` and the core-05 schema reject (no `sessions`, no `mediatype`).
+  - [§8](vcon-ecosystem-speckit.md#8-extension-system) lawful basis: passes `session_index` (1.0.3 raises when an attachment has no `dialog` or `session` and the vCon has no single Session) and uses a future `expiration` (the 2026-01-15 one had expired, so `check_lawful_basis_permission()` returned False).
+  - §8 WTF: `add_wtf_transcription_analysis()` takes `transcript`, `segments` and `metadata` as separate arguments and writes `type: "wtf_transcription"` with a JSON body; the old call raised `TypeError`.
+  - [Tags Convention](vcon-ecosystem-speckit.md#tags-convention): notes that 1.0.3's `add_tag()` writes a list body scoped to every Session.
+- [DEVELOPER_QUICK_REFERENCE.md](DEVELOPER_QUICK_REFERENCE.md): the compliance table now says an analysis body is a string only for `none`/`base64url` encoding, and an attachment needs `party` plus `dialog` or `session` (both rows still described core-04).
+- [CLAUDE.md](CLAUDE.md): vcon-lib is no longer listed as unported; vcon-js and vcon-mcp still are.
+
 ## 2026-11-01
 
 - Retargeted the kit from `draft-ietf-vcon-vcon-core-02` (syntax `"0.4.0"`) to `draft-ietf-vcon-vcon-core-05` (syntax `"0.5.0"`).

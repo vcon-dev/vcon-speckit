@@ -32,7 +32,7 @@ These are the most common spec-compliance mistakes. Full list: [speckit §Critic
 
 ## Legacy field names (historical)
 
-The canonical libraries (`vcon-lib` v0.9.1+, `vcon-js` v0.3.0+, `vcon-mcp` current main) all use the core-04 spec names, `amended` and `critical`. Those libraries have not yet been ported to core-05, so they still write `"0.4.0"`, `amended`/`redacted`, Dialog `originator`, `party_history` and `transfer` dialogs; when generating core-05 output, use the core-05 names above. If you encounter `appended` or `must_support` in older code branches, pre-v0.9.1 vcon-lib output, vcon-mcp's deprecated `must_support`/`appended` columns, or the `vcons_legacy` view, translate to the spec name when writing vCon JSON out. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed) for details.
+`vcon-lib` 1.0.3+ (`vcon` on PyPI) implements core-05: it writes `"0.5.0"`, Sessions and Events, and migrates 0.4.0 input on load. `vcon-js` (v0.3.0+) and `vcon-mcp` (current main) use the core-04 spec names, `amended` and `critical`, and have not yet been ported to core-05, so they still write `"0.4.0"`, `amended`/`redacted`, Dialog `originator`, `party_history` and `transfer` dialogs; when generating core-05 output, use the core-05 names above. If you encounter `appended` or `must_support` in older code branches, pre-v0.9.1 vcon-lib output, vcon-mcp's deprecated `must_support`/`appended` columns, or the `vcons_legacy` view, translate to the spec name when writing vCon JSON out. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed) for details.
 
 ## Spec target
 

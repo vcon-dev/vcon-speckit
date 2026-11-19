@@ -8,9 +8,9 @@ One-page cheat sheet for common patterns. For full details, see [vcon-ecosystem-
 |------|---------|-------|
 | Analysis schema | `schema` | `schema_version` |
 | Analysis vendor | Required | Omitted |
-| Analysis body | String (even for JSON) | Object |
+| Analysis body | String for `encoding` `none`/`base64url`; any JSON value for `json` | Object with `encoding: "none"` |
 | Attachment purpose | `purpose` | `type` (in core) |
-| Attachment indices | `party`, `dialog` required | Omitted |
+| Attachment scope | `party` plus `dialog` or `session` | Omitted |
 | Tags | see [speckit §Tags Convention](vcon-ecosystem-speckit.md#tags-convention) / [GLOSSARY: tags](GLOSSARY.md#core-data-model) | Top-level tags object |
 | External refs | `url` + `content_hash` | Either missing |
 | Timestamps | ISO 8601 + timezone | No timezone |

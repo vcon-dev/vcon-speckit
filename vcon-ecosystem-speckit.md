@@ -434,6 +434,8 @@ Tags are stored as attachments with `purpose: "tags"` (or `type: "tags"` in lega
 }
 ```
 
+vcon-lib 1.0.3+ `add_tag()` writes the body as a list of `"name:value"` strings (`["department:sales"]`) and scopes the attachment to every Session (`"session": [0]`), adding an empty Session `{}` if the vCon has none. Readers should accept both the object and the list body.
+
 ---
 
 ## 3. Architecture Patterns
@@ -525,23 +527,27 @@ Transport (STDIO/HTTP) → Server → Tool Handlers → Database (Supabase + Red
 
 ### 3.3 vcon-lib (Python Library)
 
-**Pattern**: Object-oriented data model with extension framework.
+**Pattern**: Object-oriented data model with extension framework. vcon-lib 1.0.3+ (`vcon` on PyPI) implements core-05: it writes `"0.5.0"` and migrates 0.4.0 input on load.
 
 ```python
-from vcon import Vcon
+from vcon import Vcon, Dialog, Session
 from vcon.party import Party
-from vcon.dialog import Dialog
 
-v = Vcon.build_new()
+v = Vcon.build_new()  # "vcon": "0.5.0", UUID v8
 v.add_party(Party(tel="+15551234567", name="Alice"))
 v.add_party(Party(tel="+15559876543", name="Bob"))
-v.add_dialog(Dialog(type="text", start="2025-01-15T10:30:00Z", parties=[0, 1], body="Hello world", encoding="none"))
-# add_analysis is keyword-only; type, dialog, vendor, body are required
+# One Session per conversation; its parties are the participants, originator first
+s = v.add_session(Session(start="2025-01-15T10:30:00Z", parties=[0, 1]))
+# Dialog parties are the contributors only (the sender of this message)
+v.add_dialog(Dialog(type="text", start="2025-01-15T10:30:00Z", parties=[0],
+                    body="Hello world", encoding="none", mediatype="text/plain"), session=s)
+# add_analysis is keyword-only; type, vendor, body are required
 v.add_analysis(type="summary", dialog=0, vendor="OpenAI", product="GPT-4", body="Summary text", encoding="none")
+assert v.is_valid() == (True, [])
 v.to_json()
 ```
 
-> `Party` and `Dialog` import from their submodules (`vcon.party`, `vcon.dialog`); only `Vcon` is exported from the package root. Prefer these helpers over writing `vcon_dict[...]` directly.
+> `Vcon`, `Dialog`, `Session` and `Event` import from the package root; `Party` imports from `vcon.party`. Prefer these helpers over writing `vcon_dict[...]` directly.
 
 **Extension framework**:
 - `ExtensionRegistry` for registration and discovery
@@ -789,17 +795,18 @@ DLQ:{ingress_list}       → List (failed vCon UUIDs)
 Implemented in vcon-lib, referenced by IETF draft.
 
 ```python
-v = Vcon.build_new()
+# v from the §3.3 quick start (two parties, one Session)
 v.add_lawful_basis_attachment(
     lawful_basis="consent",
-    expiration="2026-01-15T10:00:00Z",   # REQUIRED — ISO 8601, or None for indefinite
+    expiration="2027-01-15T10:00:00Z",   # REQUIRED — ISO 8601, or None for indefinite
     purpose_grants=[{
         "purpose": "quality_assurance",
         "granted": True,
         "granted_at": "2025-01-15T10:00:00Z",   # REQUIRED per grant
         "conditions": ["Recording for training purposes"]  # optional array of strings
     }],
-    party_index=0,
+    party_index=0,     # the party that records the basis
+    session_index=0,   # core-05: an attachment needs party plus dialog or session
 )
 # Optional proof: proof_mechanisms=[{"proof_type": "verbal_confirmation",
 #   "timestamp": "...", "proof_data": {...}}] — the helper expects ProofMechanism
@@ -813,18 +820,15 @@ has_permission = v.check_lawful_basis_permission("quality_assurance", party_inde
 
 ### WTF Extension (World Transcription Format)
 
-Standardized transcription format with multi-provider support. Transcripts default to `analysis[]`, not `attachments[]` — prefer `add_wtf_transcription_analysis()` (vcon-lib ≥ 0.9.2) for new code.
+Standardized transcription format with multi-provider support. Transcripts default to `analysis[]`, not `attachments[]` — prefer `add_wtf_transcription_analysis()` for new code. In vcon-lib 1.0.3+ it writes an analysis entry with `type: "wtf_transcription"`, `encoding: "json"` and the WTF document as a JSON body (not a string), and takes `dialog_index` and/or `session_index`.
 
 ```python
 v.add_wtf_transcription_analysis(
-    transcript={
-        "segments": [
-            {"start": 0.0, "end": 2.5, "text": "Hello", "speaker": "Speaker_0", "confidence": 0.95}
-        ],
-        "speakers": [{"id": "Speaker_0", "name": "Agent"}],
-        "metadata": {"provider": "whisper", "model": "large-v3"}
-    },
-    dialog_index=0
+    transcript={"text": "Hello", "language": "en-US", "duration": 2.5, "confidence": 0.95},
+    segments=[{"id": 0, "start": 0.0, "end": 2.5, "text": "Hello", "confidence": 0.95, "speaker": 0}],
+    metadata={"created_at": "2025-01-15T10:31:00Z", "processed_at": "2025-01-15T10:31:00Z",
+              "provider": "whisper", "model": "large-v3"},  # provider -> vendor, model -> product
+    dialog_index=0,
 )
 ```
 
