@@ -1,6 +1,6 @@
 # vCon Usage Guide
 
-> **Spec target:** IETF `draft-ietf-vcon-vcon-core-02`. The `vcon` syntax parameter remains `"0.4.0"` (deprecated in draft-02; retained for parser compatibility). Last reviewed: 2026-05-30 (against vcon-lib v0.9.4, vcon-js v0.4.0; lawful_basis draft -02).
+> **Spec target:** IETF `draft-ietf-vcon-vcon-core-05`. The `vcon` syntax parameter is `"0.5.0"` (deprecated as of RFC publication; retained for parser compatibility). Vendored schema: [schema/](schema/). Examples below use core-05 structure: a `sessions` array whenever `dialog` is present, Dialog `parties` as contributors, `redacted_from`/`amended_from`, and Events instead of `party_history` and `transfer` dialogs.
 
 > Companion to [vcon-ecosystem-speckit.md](vcon-ecosystem-speckit.md). Where the speckit defines **what** the vCon data model is, this guide defines **how to use it** — for specific domains, feature-by-feature, and per adapter/link.
 
@@ -60,13 +60,13 @@ Each profile defines the minimum required fields, recommended additions, and app
 
 #### Transfer handling
 
-Use `type: "transfer"` dialogs to link call segments. Transfer dialogs MUST NOT have `parties`, `body`, or media content — only linkage fields (`transferee`, `transferor`, `transfer_target`, `original`, `target_dialog`).
+Use transfer Event Objects (`consultation-start`, `blind-transfer`, `consultative-transfer`, `transfer-abandoned`) to record call transfers. `party` is the Transferor, `sessions` is a single index to the Session for the original call, and `transferee`, `transfer_target`, `consultation` and `target_session` link the other legs. The core-04 `transfer` Dialog type is gone.
 
 #### Example
 
 ```json
 {
-  "vcon": "0.4.0",
+  "vcon": "0.5.0",
   "uuid": "...",
   "created_at": "2025-06-01T14:00:00Z",
   "extensions": ["role"],
@@ -80,11 +80,13 @@ Use `type: "transfer"` dialogs to link call segments. Transfer dialogs MUST NOT 
       "start": "2025-06-01T14:00:05Z",
       "duration": 185,
       "parties": [0, 1],
-      "originator": 0,
       "mediatype": "audio/wav",
       "url": "https://storage.example/recordings/abc123.wav",
       "content_hash": "sha512-..."
     }
+  ],
+  "sessions": [
+    { "start": "2025-06-01T14:00:05Z", "duration": 185, "parties": [0, 1], "dialog": [0] }
   ],
   "analysis": [
     { "type": "transcript", "dialog": 0, "vendor": "Deepgram", "product": "nova-2", "body": "...", "encoding": "none" },
@@ -95,6 +97,7 @@ Use `type: "transfer"` dialogs to link call segments. Transfer dialogs MUST NOT 
       "purpose": "tags",
       "start": "2025-06-01T14:00:00Z",
       "party": 0, "dialog": 0,
+      "mediatype": "application/json",
       "body": "{\"department\": \"billing\", \"queue\": \"inbound\", \"outcome\": \"resolved\"}",
       "encoding": "json"
     }
@@ -119,7 +122,7 @@ Use `type: "transfer"` dialogs to link call segments. Transfer dialogs MUST NOT 
 
 #### Required before any AI analysis
 
-A redaction link MUST run before any AI analysis link to strip PII from the vCon that is sent to external LLM providers. The original unredacted vCon is preserved internally; the redacted form references it via the `redacted` field.
+A redaction link MUST run before any AI analysis link to strip PII from the vCon that is sent to external LLM providers. The original unredacted vCon is preserved internally; the redacted form references it via the `redacted_from` field.
 
 #### Recommended
 
@@ -135,12 +138,12 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
 
 ```json
 {
-  "vcon": "0.4.0",
+  "vcon": "0.5.0",
   "uuid": "...",
   "created_at": "2025-06-01T09:00:00Z",
   "extensions": ["lawful_basis", "role"],
   "critical": ["lawful_basis"],
-  "redacted": {
+  "redacted_from": {
     "uuid": "original-uuid-here",
     "type": "de-identified"
   },
@@ -159,6 +162,9 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
       "content_hash": "sha512-..."
     }
   ],
+  "sessions": [
+    { "start": "2025-06-01T09:05:00Z", "duration": 1200, "parties": [0, 1], "dialog": [0] }
+  ],
   "analysis": [
     {
       "type": "summary",
@@ -175,6 +181,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
       "purpose": "lawful_basis",
       "start": "2025-06-01T09:00:00Z",
       "party": 1, "dialog": 0,
+      "mediatype": "application/json",
       "body": "{\"lawful_basis\": \"consent\", \"expiration\": \"2026-06-01T09:00:00Z\", \"purpose_grants\": [{\"purpose\": \"recording\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}, {\"purpose\": \"transcription\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}, {\"purpose\": \"analysis\", \"granted\": true, \"granted_at\": \"2025-06-01T08:55:00Z\"}], \"proof_mechanisms\": [{\"proof_type\": \"signed_document\", \"timestamp\": \"2025-06-01T08:55:00Z\", \"proof_data\": {\"form\": \"hipaa-consent-v3\"}}]}",
       "encoding": "json"
     }
@@ -229,6 +236,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
       "purpose": "tags",
       "start": "2025-06-01T16:00:00Z",
       "party": 0, "dialog": 0,
+      "mediatype": "application/json",
       "body": "{\"campaign\": \"q2-outbound\", \"stage\": \"discovery\", \"outcome\": \"follow-up\", \"crm_id\": \"opp-1234\"}",
       "encoding": "json"
     }
@@ -248,7 +256,7 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
 |---------|-------|-------|
 | `parties` | `tel`, `mailto`, or `sip` | Customer contact; support agent |
 | `dialog` | `type: "text"` | For chat and email; `"recording"` for escalated voice |
-| `dialog` | `party_history` | Track joins/drops in multi-agent handoffs |
+| `events` | `join` / `drop` events | Track joins/drops in multi-agent handoffs |
 
 #### Recommended
 
@@ -257,12 +265,12 @@ A redaction link MUST run before any AI analysis link to strip PII from the vCon
 | Tags: `ticket_id`, `channel`, `priority`, `resolution` | Link to ticketing system |
 | `dialog.message_id` | For email threads and chat message IDs |
 | `dialog.application` | E.g., `"zendesk"`, `"intercom"`, `"email"` |
-| `type: "transfer"` dialog | For agent-to-agent escalations |
+| Transfer events | For agent-to-agent escalations (`blind-transfer`, `consultative-transfer`) |
 | `analysis.type: "summary"` | Resolution summary for ticket closure |
 
 #### Multi-turn text dialog
 
-Each message exchange can be a separate text dialog entry, or the full transcript stored as a single dialog body. Use `party_history` with `join`/`drop` events to model agent handoffs.
+Each message exchange can be a separate text dialog entry, or the full transcript stored as a single dialog body. Use `join`/`drop` Event Objects in the top-level `events` array to model agent handoffs.
 
 #### Example (excerpt)
 
@@ -278,22 +286,25 @@ Each message exchange can be a separate text dialog entry, or the full transcrip
     {
       "type": "text",
       "start": "2025-06-01T10:00:00Z",
-      "parties": [0, 1],
-      "originator": 0,
+      "parties": [0],
       "mediatype": "text/plain",
       "application": "zendesk",
       "message_id": "ticket-98765",
       "body": "Hi, my invoice is incorrect.",
       "encoding": "none"
     },
+  ],
+  "sessions": [
+    { "start": "2025-06-01T10:00:00Z", "parties": [0, 1, 2], "dialog": [0] }
+  ],
+  "events": [
     {
-      "type": "transfer",
-      "start": "2025-06-01T10:15:00Z",
+      "type": "blind-transfer",
+      "time": "2025-06-01T10:15:00Z",
+      "sessions": 0,
+      "party": 1,
       "transferee": 0,
-      "transferor": 1,
-      "transfer_target": 2,
-      "original": 0,
-      "target_dialog": 2
+      "transfer_target": 2
     }
   ],
   "attachments": [
@@ -301,6 +312,7 @@ Each message exchange can be a separate text dialog entry, or the full transcrip
       "purpose": "tags",
       "start": "2025-06-01T10:00:00Z",
       "party": 0, "dialog": 0,
+      "mediatype": "application/json",
       "body": "{\"ticket_id\": \"98765\", \"channel\": \"chat\", \"priority\": \"high\", \"resolution\": \"escalated\"}",
       "encoding": "json"
     }
@@ -329,14 +341,14 @@ Each message exchange can be a separate text dialog entry, or the full transcrip
 
 | Element | Notes |
 |---------|-------|
-| `amended` | Reference prior vCon when adding analysis to an intercepted recording |
+| `amended_from` | Reference prior vCon when adding analysis to an intercepted recording |
 | `parties.stir` | PASSporT JWS Compact for identity verification |
 | Immutable storage | Store in append-only backend; never overwrite |
 | Audit tags | `authority`, `case_reference`, `intercept_date` in attachments |
 
 #### Notes on processing
 
-Processing links MUST NOT modify the original signed vCon. Instead, create an `amended` vCon that extends the original. The signed original must be retained with its hash intact.
+Processing links MUST NOT modify the original signed vCon. Instead, create an `amended_from` vCon that extends the original. The signed original must be retained with its hash intact.
 
 ---
 
@@ -352,24 +364,22 @@ Prescriptive rules for each vCon element. These complement the "what is it" desc
 |------|----------|-----------------|
 | `recording` | There is actual audio or video media (captured or referenced via URL) | Storing extracted transcripts (use analysis) |
 | `text` | Conversation is text-native: chat, email, SMS, or an extracted transcript stored inline | There is audio/video — use `recording` instead |
-| `transfer` | Linking two call-leg dialogs when a call was transferred | Representing actual content; transfer dialogs have NO body, parties, or media |
 | `incomplete` | A call was attempted but never connected | Any call that connected, even briefly |
 
 **`incomplete` disposition values**: `no-answer`, `congestion`, `failed`, `busy`, `hung-up`, `voicemail-no-message`
 
-**Transfer linkage pattern**:
+**Transfer linkage pattern** (core-05): a transfer is an Event Object, not a Dialog.
 ```json
 {
-  "type": "transfer",
-  "start": "2025-06-01T14:03:00Z",
+  "type": "blind-transfer",
+  "time": "2025-06-01T14:03:00Z",
+  "sessions": 0,
+  "party": 1,
   "transferee": 0,
-  "transferor": 1,
-  "transfer_target": 2,
-  "original": 0,
-  "target_dialog": 2
+  "transfer_target": 2
 }
 ```
-Transfer dialogs MUST NOT include: `parties`, `originator`, `mediatype`, `filename`, `body`, `encoding`, `url`, or `content_hash`.
+`sessions` is a single index to the Session for the original call, and `party` is the Transferor. See the Event parameter-applicability table in section 4.3.1.5 of the draft.
 
 ---
 
@@ -613,7 +623,6 @@ Minimal party representation — no `name`, `role`, or `validation`.
 | `type` | `"recording"` (default) |
 | `start` | File modification time (ISO 8601) |
 | `parties` | `[0, 1]` |
-| `originator` | `0` (sender) |
 | `mediatype` | `"audio/wav"` or `"audio/mpeg"` etc. |
 | `filename` | Original audio filename |
 | `url` | `file:///path/to/audio.wav` (local file reference) |
@@ -730,7 +739,7 @@ Pattern for a vcon-server link that produces a de-identified vCon from an origin
 
 | Element | Change |
 |---------|--------|
-| `redacted` | Set to `{"uuid": "<original-uuid>", "type": "de-identified"}` |
+| `redacted_from` | Set to `{"uuid": "<original-uuid>", "type": "de-identified"}` |
 | `parties.name` | Replaced with `"Person 1"`, `"Person 2"`, etc. (when `anonymize_parties: true`) |
 | `dialog` (recording type) | Removed (when `remove_recordings: true`) |
 | `dialog` (text type) | Bodies replaced with `"[REDACTED]"` (when `redact_personal_info: true`) |
@@ -772,6 +781,7 @@ When using WTF (World Transcription Format), the normalized transcript is also s
   "purpose": "wtf_transcription",
   "start": "2025-06-01T14:00:00Z",
   "party": 0, "dialog": 0,
+  "mediatype": "application/json",
   "body": "{\"segments\": [{\"start\": 0.0, \"end\": 2.5, \"text\": \"Hello\", \"speaker\": \"Speaker_0\", \"confidence\": 0.95}], ...}",
   "encoding": "json"
 }
@@ -791,6 +801,7 @@ Appends structured metadata as a `tags` attachment.
   "start": "<processing-timestamp>",
   "party": 0,
   "dialog": 0,
+  "mediatype": "application/json",
   "body": "{\"key\": \"value\", ...}",
   "encoding": "json"
 }

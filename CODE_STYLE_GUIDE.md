@@ -17,7 +17,7 @@ Use this guide for consistent formatting, naming, and conventions across all vCo
 | Environment vars | UPPER_SNAKE_CASE | `REDIS_URL`, `SUPABASE_URL` |
 | Config keys | snake_case | `ingress_lists`, `api_key` |
 | Docker services | lowercase hyphenated | `conserver`, `redis-stack` |
-| IETF/vCon fields | snake_case | `created_at`, `content_hash`, `party_history` |
+| IETF/vCon fields | snake_case | `created_at`, `content_hash`, `redacted_from` |
 
 ## Python
 

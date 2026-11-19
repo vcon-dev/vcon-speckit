@@ -6,19 +6,23 @@ One-line definitions with pointers to the canonical section. When a term is defi
 
 **vCon** — Virtual Conversation. An IETF-standardized container object for the content, metadata, and analyses of a conversation. See [speckit §vCon Data Model](vcon-ecosystem-speckit.md#2-vcon-data-model-canonical-reference).
 
-**dialog** — A single conversation segment: a `recording`, `text`, `transfer`, or `incomplete`. The array in a vCon can hold many dialogs, and cross-dialog linkage is expressed via transfer dialogs. See [speckit §Dialog Object](vcon-ecosystem-speckit.md#dialog-object).
+**dialog** — A single conversation segment: a `recording`, `text`, or `incomplete`. The array in a vCon can hold many dialogs; grouping and transfers are expressed by Session and Event Objects. See [speckit §Dialog Object](vcon-ecosystem-speckit.md#dialog-object).
 
 **party** — A participant in one or more dialogs. Identified by `tel`, `sip`, `mailto`, `did`, or `uuid`; may also carry name, validation, location. See [speckit §Party Object](vcon-ecosystem-speckit.md#party-object).
 
 **analysis** — Machine-produced output derived from one or more dialogs (transcript, summary, sentiment, translation, etc.). MUST include `vendor`. See [speckit §Analysis Object](vcon-ecosystem-speckit.md#analysis-object).
 
-**attachment** — Out-of-band data associated with a vCon, party, or dialog (documents, tags, lawful-basis records). `purpose`, `party`, and `dialog` are required. See [speckit §Attachment Object](vcon-ecosystem-speckit.md#attachment-object).
+**attachment** — Out-of-band data associated with a vCon, party, or dialog (documents, tags, lawful-basis records). `party` is required, and at least one of `dialog` or `session` must be present. See [speckit §Attachment Object](vcon-ecosystem-speckit.md#attachment-object).
 
 **tags** — Key-value metadata stored as an attachment with `purpose: "tags"` and JSON-encoded body. Use `party: 0, dialog: 0` for vCon-level tags. See [speckit §Tags Convention](vcon-ecosystem-speckit.md#tags-convention).
 
-**redacted** — A pointer on a vCon indicating it is a less-detailed derivative of a prior vCon (e.g. PII stripped for LLM processing). Mutually exclusive with `amended`.
+**session** — A scope for dialog and events, listing the receiver parties and the dialog indices. Required (at least one) when `dialog` or `events` has Objects. Core-05.
 
-**amended** — A pointer on a vCon indicating it extends a prior vCon (e.g. appending new analysis). Mutually exclusive with `redacted`. **History:** vcon-lib (≤ v0.9.0) and vcon-mcp originally used the legacy name `appended`; both have since renamed to the spec name. vcon-mcp keeps the legacy column as deprecated for back-compat. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed).
+**event** — A point-in-time occurrence (join, drop, hold, mute, key press, transfer) in the top-level `events` array. Replaces `party_history` and the `transfer` dialog. Core-05.
+
+**redacted_from** (core-04: `redacted`) — A pointer on a vCon indicating it is a less-detailed derivative of a prior vCon (e.g. PII stripped for LLM processing). Mutually exclusive with `amended_from`.
+
+**amended_from** (core-04: `amended`) — A pointer on a vCon indicating it extends a prior vCon (e.g. appending new analysis). Mutually exclusive with `redacted_from`. **History:** vcon-lib (≤ v0.9.0) and vcon-mcp originally used the legacy name `appended`; both have since renamed to the spec name. vcon-mcp keeps the legacy column as deprecated for back-compat. See [SPEC_COMPLIANCE_ISSUES.md](SPEC_COMPLIANCE_ISSUES.md) (Closed).
 
 **content_hash** — Integrity hash for externally referenced content. Format: `sha512-` + Base64Url of the SHA-512 digest. Required whenever `url` is used.
 
